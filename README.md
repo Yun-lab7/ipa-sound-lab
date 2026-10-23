@@ -16,6 +16,23 @@ An IPA practice page for the 44 phonemes of English, in **Cambridge Dictionary n
 
 A **UK / US** switch drives everything: the chart inventory, the dictionary forms, the quiz answers, and the speech-synthesis voice.
 
+## Real voices for every sound
+
+Tapping a chart cell plays a **recording of a person saying that sound on its own** — not a word containing it, and not speech synthesis. The files come from Wikimedia Commons and are stored in `audio/`, used unchanged.
+
+English diphthongs have no single recording on Commons, because they are glides rather than cardinal IPA sounds. They are played as their two parts, one after the other: /eɪ/ is the /e/ recording followed by the /ɪ/ recording. Both halves are credited.
+
+Every sound panel names its own recording, its author, and its licence, and links to the file on Commons. The full list is in [audio/CREDITS.md](audio/CREDITS.md).
+
+**Licensing:** the page code is MIT. The recordings are **not** — 35 of the 36 are CC BY-SA 3.0 and one is public domain. If you reuse them, keep the attribution and the share-alike terms. Example words are still spoken by the browser's speech synthesis, which needs no licence.
+
+To refresh or extend the audio:
+
+```bash
+node tools/fetch-audio.js            # check which files exist and their licences
+node tools/fetch-audio.js --download # save them and rewrite CREDITS.md
+```
+
 ## Animated mouth shapes
 
 Every phoneme opens a panel with two animated views, looping from rest into the articulation and back:
@@ -65,8 +82,8 @@ Settings → Pages → Source → **Deploy from a branch**, branch `main`, folde
 
 ## Known limits
 
-- Audio uses the browser's built-in `speechSynthesis`, so UK and US voices depend on the operating system. On Windows, add them under Settings → Time & language → Speech.
-- Speech synthesis cannot pronounce a phoneme in isolation, so a chart cell plays its example word.
+- Single sounds play from real recordings. Example words still use the browser's built-in `speechSynthesis`, so UK and US voices depend on the operating system. On Windows, add them under Settings → Time & language → Speech.
+- The recordings are Ogg Vorbis, which some older browsers (notably older Safari) cannot play. When playback fails the page falls back to speaking the example word.
 - The dictionary holds about 300 common words. Anything else is transcribed by letter-to-sound rules and tagged **guess**. To add words, edit the `RAW` array in `index.html`: `word|UK|US`, with the third field left out when the two match.
 
 ## Credits
