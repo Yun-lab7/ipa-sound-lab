@@ -30,6 +30,10 @@
     --ok: #1d7a4c;
     --err: #b02a21;
     --skin: #dfe6ea;
+    --tissue: #f0dccb;
+    --tissue-2: #e0bda5;
+    --air: #1d262e;
+    --teeth: #fbf8f2;
     --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
     --font-body: "Noto Sans", "Segoe UI", system-ui, sans-serif;
     --font-ipa: "Noto Sans", "Charis SIL", "Doulos SIL", "Segoe UI", sans-serif;
@@ -40,6 +44,7 @@
       --muted: #95a7b4; --line: #2d3b47; --accent: #4ec9bd; --accent-ink: #06231f;
       --accent-soft: #15322f; --ochre: #d9a65d; --ok: #55c98d; --err: #ef7d73;
       --skin: #243240;
+      --tissue: #cbb3a1; --tissue-2: #b1917c; --air: #080d11; --teeth: #efe9df;
       color-scheme: dark;
     }
   }
@@ -48,6 +53,7 @@
     --muted: #95a7b4; --line: #2d3b47; --accent: #4ec9bd; --accent-ink: #06231f;
     --accent-soft: #15322f; --ochre: #d9a65d; --ok: #55c98d; --err: #ef7d73;
     --skin: #243240;
+    --tissue: #cbb3a1; --tissue-2: #b1917c; --air: #080d11; --teeth: #efe9df;
     color-scheme: dark;
   }
 
@@ -309,6 +315,7 @@
     <ul class="facts" id="modalFacts"></ul>
     <div class="exrow" id="modalExamples"></div>
     <p class="hintline" id="modalNote"></p>
+    <p class="hintline" id="modalLinks"></p>
   </div>
 </div>
 
@@ -539,13 +546,16 @@
      One parametric state drives both views; a per-sound timeline moves that state
      from rest, into the articulation and back, on a loop.
        front : the lips as a speaker sees them in a mirror — the shape to copy
-       side  : a schematic cross-section showing where the tongue goes */
+       side  : a mid-sagittal head, after the Seeing Speech animations — solid
+               tissue with the airway cut out of it, a hinged jaw, and a tongue
+               that moves with the jaw it sits in. */
   const REST = {
     f: .45, h: .4, tip: .05, round: 0, open: .3, vel: 0,
     clos: 0, fric: 0, burst: 0, nasal: 0, fv: 0, th: 0, tv: .15
   };
   const stateWith = o => Object.assign({}, REST, o);
   const lerp = (a, b, k) => a + (b - a) * k;
+  const n1 = v => Math.round(v * 10) / 10;
 
   function vowelState(v, rhotic) {
     const open = Math.max(.1, 1 - v.h);
@@ -553,24 +563,26 @@
   }
   const CONS_FRONT = {
     bilabial: { open: 0, round: .15, tv: 0 },
-    labiodental: { open: .12, round: 0, fv: 1, tv: 0 },
+    labiodental: { open: .08, round: 0, fv: 1, tv: 0 },
     dental: { open: .26, round: 0, th: 1, tv: 1 },
-    alveolar: { open: .3, round: .1, tv: .9 },
-    postalveolar: { open: .3, round: .5, tv: .55 },
-    palatal: { open: .26, round: 0, tv: .5 },
-    velar: { open: .36, round: .05, tv: .2 },
+    alveolar: { open: .26, round: .1, tv: .9 },
+    postalveolar: { open: .28, round: .5, tv: .55 },
+    palatal: { open: .24, round: 0, tv: .5 },
+    velar: { open: .34, round: .05, tv: .2 },
     glottal: { open: .5, round: .05, tv: .4 },
-    labialvelar: { open: .18, round: 1, tv: .1 }
+    labialvelar: { open: .16, round: 1, tv: .1 }
   };
   function consState(p, m) {
     const t = PLACE_TONGUE[p];
-    const fr = CONS_FRONT[p];
     return stateWith(Object.assign({
       f: t.f, h: t.h, tip: t.tip,
       vel: m === "nasal" ? 1 : 0,
       nasal: m === "nasal" ? 1 : 0
-    }, fr, m === "nasal" ? { open: 0, tv: 0 } : {}));
+    }, CONS_FRONT[p], m === "nasal" ? { open: 0, tv: 0 } : {}));
   }
+
+  /* A syllable-length timeline, slow enough to follow: rest, into the
+     articulation, hold, release, back to rest. */
   function timeline(sym) {
     const a = SOUND[sym].a, K = [];
     const at = (t, s) => K.push({ t: t, s: s });
@@ -578,26 +590,26 @@
       const A = vowelState(a.v, a.rhotic);
       if (a.g) {
         const B = vowelState(a.g, 0);
-        at(0, REST); at(320, A); at(640, A); at(1160, B); at(1460, B); at(1800, REST); at(2150, REST);
+        at(0, REST); at(420, A); at(800, A); at(1500, B); at(1900, B); at(2320, REST); at(2800, REST);
       } else {
-        at(0, REST); at(340, A); at(1140, A); at(1480, REST); at(1850, REST);
+        at(0, REST); at(440, A); at(1400, A); at(1820, REST); at(2300, REST);
       }
     } else {
       const C = consState(a.p, a.m);
       const mix = o => Object.assign({}, C, o);
       if (a.m === "plosive") {
-        at(0, REST); at(260, mix({ clos: 1 })); at(640, mix({ clos: 1 }));
-        at(700, mix({ burst: 1, open: a.p === "bilabial" ? .3 : .42 })); at(850, mix({ open: a.p === "bilabial" ? .2 : .36 }));
-        at(1160, REST); at(1500, REST);
+        at(0, REST); at(340, mix({ clos: 1 })); at(900, mix({ clos: 1 }));
+        at(980, mix({ burst: 1, open: a.p === "bilabial" ? .3 : .42 }));
+        at(1140, mix({ open: a.p === "bilabial" ? .22 : .36 })); at(1560, REST); at(2050, REST);
       } else if (a.m === "affricate") {
-        at(0, REST); at(250, mix({ clos: 1 })); at(560, mix({ clos: 1 }));
-        at(650, mix({ fric: 1 })); at(1150, mix({ fric: 1 })); at(1460, REST); at(1800, REST);
+        at(0, REST); at(330, mix({ clos: 1 })); at(820, mix({ clos: 1 }));
+        at(930, mix({ fric: 1 })); at(1540, mix({ fric: 1 })); at(1950, REST); at(2400, REST);
       } else if (a.m === "fricative") {
-        at(0, REST); at(280, mix({ fric: 1 })); at(1180, mix({ fric: 1 })); at(1480, REST); at(1800, REST);
+        at(0, REST); at(380, mix({ fric: 1 })); at(1560, mix({ fric: 1 })); at(1960, REST); at(2400, REST);
       } else if (a.m === "nasal") {
-        at(0, REST); at(300, mix({ clos: 1 })); at(1100, mix({ clos: 1 })); at(1420, REST); at(1750, REST);
+        at(0, REST); at(400, mix({ clos: 1 })); at(1480, mix({ clos: 1 })); at(1900, REST); at(2350, REST);
       } else {
-        at(0, REST); at(320, C); at(1020, C); at(1340, REST); at(1700, REST);
+        at(0, REST); at(420, C); at(1360, C); at(1780, REST); at(2250, REST);
       }
     }
     return K;
@@ -625,21 +637,18 @@
     const t = cy - A / 2, b = cy + A / 2;
     const innerTop = "C " + (L + 16) + "," + (t + 1) + " " + (cx - 15) + "," + t + " " + cx + "," + t
       + " C " + (cx + 15) + "," + t + " " + (R - 16) + "," + (t + 1) + " " + R + "," + cy;
-    const innerBottomBack = "C " + (R - 16) + "," + (b - 1) + " " + (cx + 15) + "," + b + " " + cx + "," + b
+    const innerBack = "C " + (R - 16) + "," + (b - 1) + " " + (cx + 15) + "," + b + " " + cx + "," + b
       + " C " + (cx - 15) + "," + b + " " + (L + 16) + "," + (b - 1) + " " + L + "," + cy;
     return {
-      // Outer edge over the cupid's bow, then back along the inner edge of the aperture.
       upper: "M " + L + "," + cy
         + " C " + (L + 11) + "," + (t - UT + 3) + " " + (cx - 21) + "," + (t - UT - 3) + " " + cx + "," + (t - UT + 4)
         + " C " + (cx + 21) + "," + (t - UT - 3) + " " + (R - 11) + "," + (t - UT + 3) + " " + R + "," + cy
         + " C " + (R - 16) + "," + (t + 1) + " " + (cx + 15) + "," + t + " " + cx + "," + t
         + " C " + (cx - 15) + "," + t + " " + (L + 16) + "," + (t + 1) + " " + L + "," + cy + " Z",
-      lower: "M " + L + "," + cy
-        + " C " + (L + 16) + "," + (b - 1) + " " + (cx - 15) + "," + b + " " + cx + "," + b
-        + " C " + (cx + 15) + "," + b + " " + (R - 16) + "," + (b - 1) + " " + R + "," + cy
+      lower: "M " + L + "," + cy + " " + innerBack.replace(/^C/, "C")
         + " C " + (R - 11) + "," + (b + LT - 3) + " " + (cx + 21) + "," + (b + LT + 3) + " " + cx + "," + (b + LT)
         + " C " + (cx - 21) + "," + (b + LT + 3) + " " + (L + 11) + "," + (b + LT - 3) + " " + L + "," + cy + " Z",
-      inner: "M " + L + "," + cy + " " + innerTop + " " + innerBottomBack + " Z",
+      inner: "M " + L + "," + cy + " " + innerTop + " " + innerBack + " Z",
       teethU: { x: L + 9, y: lerp(t, cy - 12, s.fv), w: Math.max(0, 2 * W - 18) },
       teethL: { x: L + 11, y: b - 11, w: Math.max(0, 2 * W - 22) },
       tongue: { cx: cx, cy: lerp(b - 5, cy + 1, s.th), rx: W * .56, ry: 7 + s.open * 5 },
@@ -657,7 +666,6 @@
       + "</defs>"
       + '<rect x="0" y="0" width="300" height="272" rx="14" fill="url(#skinG)"/>'
       + '<ellipse cx="150" cy="238" rx="62" ry="20" fill="#cf9c84" opacity="0.45"/>'
-      // nose base and philtrum, so the lips read as part of a face
       + '<path d="M 118,62 Q 150,30 182,62 Q 168,74 150,74 Q 132,74 118,62 Z" fill="#e7bda4" opacity="0.75"/>'
       + '<ellipse cx="134" cy="66" rx="6" ry="4" fill="#b78568" opacity="0.5"/>'
       + '<ellipse cx="166" cy="66" rx="6" ry="4" fill="#b78568" opacity="0.5"/>'
@@ -675,45 +683,72 @@
       + "</svg>";
   }
 
-  /* ---- side view: the vocal tract ---- */
+  /* ---- side view: a mid-sagittal head, facing right ----
+     The airway is a stroked centre-line, so the cavity stays a smooth tube at any
+     size; the tongue is then drawn over its lower half to narrow or close it.
+     The jaw, the lower teeth and the tongue hinge together near the ear. */
+  const JAW_HINGE = [112, 170];
+  const TRACT = "M 120,266 C 116,232 114,202 124,180 C 134,162 160,150 196,147 L 228,149";
+  const NOSE_TUBE = "M 130,168 C 134,140 150,122 178,116 C 202,111 226,116 242,126";
   function tonguePath(f, h, tip) {
-    const tipX = 84, tipY = 170 - tip * 44;
-    const hx = 180 - 72 * f, hy = 188 - 80 * h;
-    return "M " + tipX + "," + tipY.toFixed(1)
-      + " Q " + (tipX + 14) + "," + (tipY - 3 + (hy - tipY) * .2).toFixed(1) + " " + hx.toFixed(1) + "," + hy.toFixed(1)
-      + " Q " + ((hx + 204) / 2).toFixed(1) + "," + (hy + 14).toFixed(1) + " 206,200"
-      + " L 212,214 Q 150,212 " + (tipX + 4) + "," + (tipY + 22).toFixed(1) + " Z";
+    const tx = 216, ty = 170 - tip * 32;
+    const hx = 150 + f * 58, hy = 174 - h * 36;
+    return "M 220,176"
+      + " L " + tx + "," + n1(ty)
+      + " Q " + n1((tx + hx) / 2) + "," + n1(Math.min(ty, hy) - 8) + " " + n1(hx) + "," + n1(hy)
+      + " Q " + n1((hx + 130) / 2) + "," + n1(hy + 16) + " 130,184"
+      + " L 128,212 C 162,210 196,197 220,181 Z";
   }
   function velumPath(v) {
-    const ex = lerp(233, 211, v), ey = lerp(116, 152, v);
-    const cx = lerp(224, 216, v), cy = lerp(101, 120, v);
-    return "M 200,102 Q " + cx.toFixed(1) + "," + cy.toFixed(1) + " " + ex.toFixed(1) + "," + ey.toFixed(1);
+    // Raised, the soft palate seals the nasal branch; lowered, it swings clear of it.
+    const ex = lerp(125, 148, v), ey = lerp(145, 188, v);
+    const cx = lerp(128, 144, v), cy = lerp(156, 176, v);
+    return "M 136,170 Q " + n1(cx) + "," + n1(cy) + " " + n1(ex) + "," + n1(ey);
   }
+  const SIDE_PLACE = {
+    bilabial: [231, 152], labiodental: [226, 148], dental: [222, 144], alveolar: [215, 140],
+    postalveolar: [203, 138], palatal: [179, 134], velar: [141, 151], glottal: [120, 248],
+    labialvelar: [231, 152]
+  };
   function sideSVG(sym) {
     const a = SOUND[sym].a;
-    const pt = a.t === "c" ? PLACE_PT[a.p] : [0, 0];
+    const pt = a.t === "c" ? SIDE_PLACE[a.p] : [0, 0];
     let waves = "";
-    for (let i = 0; i < 3; i++) waves += '<path d="M ' + (i * 7) + ',-6 q 4,5 0,10" fill="none" stroke="var(--err)" stroke-width="1.8" opacity="0.85"/>';
-    return '<svg class="vt" id="vtSide" viewBox="0 0 300 272" role="img" aria-label="Animated side view of the mouth" hidden>'
+    for (let i = 0; i < 3; i++) waves += '<path d="M ' + (i * 7) + ',-6 q 4,5 0,10" fill="none" stroke="#d8453a" stroke-width="1.8"/>';
+    return '<svg class="vt" id="vtSide" viewBox="0 0 300 300" role="img" aria-label="Animated mid-sagittal view of the mouth" hidden>'
       + '<defs><marker id="vtArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">'
       + '<path d="M 0,0 L 10,5 L 0,10 z" fill="var(--accent)"/></marker></defs>'
-      + '<path d="M 58,68 L 206,66 Q 232,70 234,94 L 228,104 Q 200,98 160,96 Q 110,100 72,112 L 58,98 Z" fill="var(--skin)" stroke="var(--line)" stroke-width="1.4"/>'
-      + '<path d="M 72,128 Q 110,108 168,100 L 200,102 Q 224,110 234,124 L 236,228 Q 212,220 200,212 Q 150,198 110,186 L 76,172 Z" fill="var(--surface)" stroke="var(--line)" stroke-width="1.4"/>'
-      + '<path d="M 68,112 L 80,114 L 80,132 L 70,130 Z" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/>'
-      + '<path d="M 68,172 L 80,168 L 80,150 L 70,152 Z" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/>'
-      + '<path id="vtLipU" d="M 46,100 Q 32,116 40,134 L 68,132 L 70,104 Z" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>'
-      + '<path id="vtLipL" d="M 40,178 Q 32,160 46,148 L 70,152 L 68,180 Z" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>'
-      + '<path id="vtVelum" d="' + velumPath(0) + '" fill="none" stroke="var(--ink)" stroke-width="5" stroke-linecap="round" opacity="0.6"/>'
-      + '<path id="vtAirO" d="M 224,216 C 218,186 200,172 150,166 L 78,152" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#vtArrow)"/>'
-      + '<path id="vtAirN" d="M 224,216 C 220,170 216,110 180,86 L 70,82" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#vtArrow)" opacity="0"/>'
-      + '<path id="vtTongue" d="' + tonguePath(REST.f, REST.h, REST.tip) + '" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.2"/>'
-      + '<circle id="vtBurst" cx="' + pt[0] + '" cy="' + pt[1] + '" r="4" fill="none" stroke="var(--err)" stroke-width="2" opacity="0"/>'
-      + '<circle id="vtClos" cx="' + pt[0] + '" cy="' + pt[1] + '" r="6" fill="var(--err)" opacity="0"/>'
-      + '<g id="vtFric" transform="translate(' + (pt[0] + 11) + ',' + (pt[1] + 5) + ')" opacity="0">' + waves + "</g>"
-      + '<circle id="vtLarynx" cx="226" cy="238" r="11" fill="none" stroke="var(--ochre)" stroke-width="2"/>'
-      + '<text id="vtVoice" x="226" y="264" text-anchor="middle" font-size="9" fill="var(--muted)">voiceless</text>'
-      + '<text x="150" y="86" text-anchor="middle" font-size="9" fill="var(--muted)">nasal cavity</text>'
-      + '<text x="294" y="268" text-anchor="end" font-size="9" fill="var(--muted)">schematic — lips on the left</text>'
+      + '<rect x="0" y="0" width="300" height="300" rx="14" fill="var(--surface-2)"/>'
+      // head profile: crown, forehead, nose, lips, chin, jaw, neck
+      + '<path fill="var(--tissue)" d="M 34,200 C 26,110 76,30 154,32 C 196,33 216,58 220,88'
+      + ' C 232,98 252,118 249,128 C 246,134 236,131 229,133 L 233,144'
+      + ' C 236,150 233,156 226,156 C 200,150 170,152 150,158 C 134,168 126,186 124,206'
+      + ' L 118,252 L 118,300 L 30,300 C 26,262 38,250 34,200 Z"/>'
+      // the airway, cut out of the tissue as one smooth tube
+      + '<path fill="none" stroke="var(--air)" stroke-width="27" stroke-linecap="round" d="' + TRACT + '"/>'
+      + '<path fill="none" stroke="var(--air)" stroke-width="15" stroke-linecap="round" d="' + NOSE_TUBE + '"/>'
+      // airflow follows the same centre-lines
+      + '<path id="vtAirO" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-dasharray="5 5" marker-end="url(#vtArrow)" d="' + TRACT + '"/>'
+      + '<path id="vtAirN" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-dasharray="5 5" marker-end="url(#vtArrow)" opacity="0" d="M 120,266 C 116,232 114,200 128,172 L' + NOSE_TUBE.slice(1) + '"/>'
+      + '<path id="vtVelum" d="' + velumPath(0) + '" fill="none" stroke="var(--tissue)" stroke-width="11" stroke-linecap="round"/>'
+      // hinged jaw carrying the lower lip, the lower teeth and the tongue
+      + '<g id="vtJaw">'
+      + '<path fill="var(--tissue)" d="M 226,158 C 234,163 236,173 230,179'
+      + ' C 227,189 230,197 224,203 C 206,215 176,223 146,223 L 116,223 L 112,252'
+      + ' L 120,252 L 126,207 C 130,189 138,173 154,163 C 178,155 204,153 222,155 Z"/>'
+      + '<path id="vtTongue" fill="var(--tissue-2)" d="' + tonguePath(REST.f, REST.h, REST.tip) + '"/>'
+      + '<path fill="var(--teeth)" d="M 216,162 L 226,158 L 227,167 L 217,170 Z"/>'
+      + "</g>"
+      + '<path fill="var(--teeth)" d="M 216,136 L 226,140 L 226,149 L 216,145 Z"/>'
+      // closure, friction, release
+      + '<circle id="vtBurst" cx="' + pt[0] + '" cy="' + pt[1] + '" r="4" fill="none" stroke="#d8453a" stroke-width="2.4" opacity="0"/>'
+      + '<circle id="vtClos" cx="' + pt[0] + '" cy="' + pt[1] + '" r="7" fill="#d8453a" opacity="0"/>'
+      + '<g id="vtFric" transform="translate(' + (pt[0] + 6) + ',' + (pt[1] + 10) + ')" opacity="0">' + waves + "</g>"
+      // larynx
+      + '<circle id="vtLarynx" cx="120" cy="256" r="11" fill="none" stroke="var(--ochre)" stroke-width="2.4"/>'
+      + '<text id="vtVoice" x="120" y="282" text-anchor="middle" font-size="10" fill="var(--muted)">voiceless</text>'
+      + '<text x="252" y="76" text-anchor="end" font-size="9" fill="var(--muted)">nasal cavity</text>'
+      + '<text x="290" y="292" text-anchor="end" font-size="9" fill="var(--muted)">mid-sagittal — facing right</text>'
       + "</svg>";
   }
 
@@ -730,14 +765,14 @@
   }
 
   /* ---- the animation loop ---- */
-  const anim = { raf: 0, start: 0, sym: null, playing: false, keys: null, voiced: 0, px: 0, py: 0, els: null };
+  const anim = { raf: 0, start: 0, sym: null, playing: false, keys: null, voiced: 0, px: 0, py: 0, view: "front", els: null };
   function cacheEls() {
     const g = id => document.getElementById(id);
     anim.els = {
       front: g("vtFront"), side: g("vtSide"),
       fLipU: g("vtFLipU"), fLipL: g("vtFLipL"), fInner: g("vtFInner"), fClip: g("vtClipPath"),
       fTeethU: g("vtFTeethU"), fTeethL: g("vtFTeethL"), fTongue: g("vtFTongue"), fShine: g("vtFShine"),
-      tongue: g("vtTongue"), lipU: g("vtLipU"), lipL: g("vtLipL"), velum: g("vtVelum"),
+      jaw: g("vtJaw"), tongue: g("vtTongue"), velum: g("vtVelum"),
       airO: g("vtAirO"), airN: g("vtAirN"), clos: g("vtClos"), fric: g("vtFric"), burst: g("vtBurst"),
       larynx: g("vtLarynx"), voice: g("vtVoice")
     };
@@ -752,39 +787,37 @@
     e.fLipL.setAttribute("d", p.lower);
     e.fInner.setAttribute("d", p.inner);
     e.fClip.setAttribute("d", p.inner);
-    e.fTeethU.setAttribute("x", p.teethU.x.toFixed(1));
-    e.fTeethU.setAttribute("y", p.teethU.y.toFixed(1));
-    e.fTeethU.setAttribute("width", p.teethU.w.toFixed(1));
-    e.fTeethL.setAttribute("x", p.teethL.x.toFixed(1));
-    e.fTeethL.setAttribute("y", p.teethL.y.toFixed(1));
-    e.fTeethL.setAttribute("width", p.teethL.w.toFixed(1));
-    e.fTongue.setAttribute("cx", p.tongue.cx.toFixed(1));
-    e.fTongue.setAttribute("cy", p.tongue.cy.toFixed(1));
-    e.fTongue.setAttribute("rx", p.tongue.rx.toFixed(1));
-    e.fTongue.setAttribute("ry", p.tongue.ry.toFixed(1));
+    e.fTeethU.setAttribute("x", n1(p.teethU.x));
+    e.fTeethU.setAttribute("y", n1(p.teethU.y));
+    e.fTeethU.setAttribute("width", n1(p.teethU.w));
+    e.fTeethL.setAttribute("x", n1(p.teethL.x));
+    e.fTeethL.setAttribute("y", n1(p.teethL.y));
+    e.fTeethL.setAttribute("width", n1(p.teethL.w));
+    e.fTongue.setAttribute("cx", n1(p.tongue.cx));
+    e.fTongue.setAttribute("cy", n1(p.tongue.cy));
+    e.fTongue.setAttribute("rx", n1(p.tongue.rx));
+    e.fTongue.setAttribute("ry", n1(p.tongue.ry));
     e.fTongue.setAttribute("opacity", Math.max(s.tv, s.th).toFixed(2));
-    e.fShine.setAttribute("cy", (158 + p.A / 2 + 14).toFixed(1));
+    e.fShine.setAttribute("cy", n1(158 + p.A / 2 + 14));
     e.fShine.setAttribute("opacity", (0.1 + s.round * 0.14).toFixed(2));
 
-    // side view
+    // side view: the jaw hinges, the tongue rides with it
+    e.jaw.setAttribute("transform", "rotate(" + n1(s.open * 11) + "," + JAW_HINGE[0] + "," + JAW_HINGE[1] + ")");
     e.tongue.setAttribute("d", tonguePath(s.f, s.h, s.tip));
     e.velum.setAttribute("d", velumPath(s.vel));
-    const dx = (-s.round * 8).toFixed(1);
-    e.lipU.setAttribute("transform", "translate(" + dx + ",0)");
-    e.lipL.setAttribute("transform", "translate(" + dx + "," + (s.open * 10).toFixed(1) + ")");
     e.clos.setAttribute("opacity", s.clos.toFixed(2));
     e.fric.setAttribute("opacity", s.fric.toFixed(2));
     e.burst.setAttribute("opacity", s.burst.toFixed(2));
-    e.burst.setAttribute("r", (4 + s.burst * 13).toFixed(1));
+    e.burst.setAttribute("r", n1(4 + s.burst * 14));
     e.airN.setAttribute("opacity", s.nasal.toFixed(2));
-    e.airO.setAttribute("opacity", (1 - s.nasal).toFixed(2));
-    const flow = (ms / 60) % 10;
+    e.airO.setAttribute("opacity", ((1 - s.nasal) * (1 - s.clos * .8)).toFixed(2));
+    const flow = (ms / 55) % 10;
     e.airO.setAttribute("stroke-dashoffset", (-flow).toFixed(1));
     e.airN.setAttribute("stroke-dashoffset", (-flow).toFixed(1));
-    if (s.fric > .05) e.fric.setAttribute("transform", "translate(" + (anim.px + 11 + Math.sin(ms / 70) * 1.6).toFixed(1) + "," + (anim.py + 5) + ")");
+    if (s.fric > .05) e.fric.setAttribute("transform", "translate(" + n1(anim.px + 8 + Math.sin(ms / 70) * 1.6) + "," + (anim.py + 8) + ")");
     if (anim.voiced) {
       e.larynx.setAttribute("fill", "var(--ochre)");
-      e.larynx.setAttribute("r", (11 + Math.sin(ms / 90) * 1.6).toFixed(2));
+      e.larynx.setAttribute("r", n1(11 + Math.sin(ms / 85) * 1.8));
       e.voice.textContent = "voiced";
     } else {
       e.larynx.setAttribute("fill", "none");
@@ -807,22 +840,21 @@
     if (anim.raf) cancelAnimationFrame(anim.raf);
     anim.raf = 0;
   }
+  function holdFrame() {
+    drawState(sampleTimeline(anim.keys, anim.keys[2] ? anim.keys[2].t : 500), 0);
+  }
   function startAnim(sym) {
     stopAnim();
     const a = SOUND[sym].a;
     anim.sym = sym;
     anim.keys = timeline(sym);
     anim.voiced = a.t === "v" ? 1 : a.vd;
-    const pt = a.t === "c" ? PLACE_PT[a.p] : [0, 0];
+    const pt = a.t === "c" ? SIDE_PLACE[a.p] : [0, 0];
     anim.px = pt[0]; anim.py = pt[1];
     cacheEls();
-    setView(anim.view || "front");
+    setView(anim.view);
     const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
-      drawState(sampleTimeline(anim.keys, anim.keys[2] ? anim.keys[2].t : 400), 0);
-      setPlayLabel(false);
-      return;
-    }
+    if (reduced) { holdFrame(); setPlayLabel(false); return; }
     anim.playing = true;
     anim.start = performance.now();
     anim.raf = requestAnimationFrame(frame);
@@ -832,12 +864,14 @@
     anim.view = v;
     const e = anim.els;
     if (!e || !e.front) return;
-    e.front.hidden = v !== "front";
-    e.side.hidden = v !== "side";
+    // SVG elements have no `hidden` IDL property, so set the attribute itself.
+    const show = (el, on) => { if (on) el.removeAttribute("hidden"); else el.setAttribute("hidden", ""); };
+    show(e.front, v === "front");
+    show(e.side, v === "side");
     const bf = document.getElementById("vtViewF"), bs = document.getElementById("vtViewS");
     if (bf) bf.setAttribute("aria-pressed", String(v === "front"));
     if (bs) bs.setAttribute("aria-pressed", String(v === "side"));
-    if (!anim.playing) drawState(sampleTimeline(anim.keys, anim.keys[2] ? anim.keys[2].t : 400), 0);
+    if (!anim.playing) holdFrame();
   }
   function toggleAnim() {
     if (anim.playing) { stopAnim(); setPlayLabel(false); }
@@ -870,7 +904,7 @@
     [/^w/, "w"], [/^z/, "z"]
   ];
   function guessNeutral(word) {
-    let s = word.toLowerCase().replace(/[^a-z]/g, "");
+    let s = word.toLowerCase().replace(/[^a-z]/g, "").replace(/([bcdfgklmnprstvz])/g, "$1");
     let out = "", guard = 0;
     while (s.length && guard++ < 60) {
       let matched = false;
@@ -1028,9 +1062,28 @@
       ? 'Same mouth position as <b class="ipa">/' + pairSym + "/</b> — the only difference is whether the vocal folds vibrate. Put a finger on your throat and switch between them."
       : "Hold the position and say the example words slowly to feel where your tongue sits.";
 
+    // Seeing Speech hosts real animation, MRI and ultrasound of each IPA sound.
+    // Their footage is the University of Glasgow's, so link to it rather than copy it.
+    const chartN = a.t === "c" ? 1 : 4;
+    const base = "https://www.seeingspeech.ac.uk/ipa-charts/?chart=" + chartN + "&speaker=1&datatype=";
+    const press = SS_PRESS[sym] || sym;
+    $("#modalLinks").innerHTML = "Real speech for this sound at Seeing Speech: "
+      + '<a href="' + base + '3" target="_blank" rel="noopener">animation ↗</a> · '
+      + '<a href="' + base + '1" target="_blank" rel="noopener">MRI ↗</a> · '
+      + '<a href="' + base + '4" target="_blank" rel="noopener">ultrasound ↗</a>'
+      + " — the chart opens on the right tab; press " + press + " there to play it. Footage © University of Glasgow.";
+
     $("#soundModal").hidden = false;
     $("#modalClose").focus();
   }
+  // Seeing Speech's charts follow the IPA proper, so a few English symbols map onto
+  // a different cell there (or onto two, for the diphthongs and affricates).
+  const SS_PRESS = {
+    "iː": "i", "uː": "u", "ɑː": "ɑ", "ɔː": "ɔ", "ɜː": "ɜ", "ɝː": "ɜ", "ɚ": "ə", "r": "ɹ",
+    "tʃ": "t and then ʃ", "dʒ": "d and then ʒ",
+    "eɪ": "e and ɪ", "aɪ": "a and ɪ", "ɔɪ": "ɔ and ɪ", "əʊ": "ə and ʊ", "oʊ": "o and ʊ",
+    "aʊ": "a and ʊ", "ɪə": "ɪ and ə", "eə": "e and ə", "ʊə": "ʊ and ə"
+  };
   function pairedVoicing(sym) {
     const pairs = { p: "b", b: "p", t: "d", d: "t", k: "ɡ", "ɡ": "k", f: "v", v: "f", "θ": "ð", "ð": "θ", s: "z", z: "s", "ʃ": "ʒ", "ʒ": "ʃ", "tʃ": "dʒ", "dʒ": "tʃ" };
     return pairs[sym] || null;

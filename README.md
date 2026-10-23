@@ -25,7 +25,14 @@ Every phoneme opens a panel with two animated views, looping from rest into the 
 
 Both are drawn from one parametric state, so the timeline differs per manner: plosives close, hold and burst; fricatives hold a constriction; nasals drop the velum and route air through the nose; diphthongs glide from one tongue position to the next. Animation is skipped when the browser reports `prefers-reduced-motion`.
 
-The drawings are schematic, not recordings. For real MRI and ultrasound of each sound, see [Seeing Speech](https://www.seeingspeech.ac.uk/ipa-charts/).
+The drawings are schematic, not recordings. Every sound panel therefore links straight to the real thing on [Seeing Speech](https://www.seeingspeech.ac.uk/ipa-charts/) — animation, MRI and ultrasound of that sound, with the chart opened on the right tab.
+
+Their footage cannot be embedded here: it is © University of Glasgow, and the site sends `X-Frame-Options: SAMEORIGIN`, so no other page can frame it. Linking out is the only lawful and technically possible route.
+
+Other real-speaker resources worth knowing about:
+
+- [eNunciate! (UBC)](https://enunciate.arts.ubc.ca/) — 91 ultrasound-overlay videos of a real speaker, one per IPA sound, under CC BY-NC-ND 4.0, so they may be shared unmodified, with attribution, for non-commercial use.
+- [Wikimedia Commons IPA recordings](https://commons.wikimedia.org/wiki/Category:International_Phonetic_Alphabet) — human recordings of individual phonemes under CC BY-SA 3.0, which could replace speech synthesis for isolated sounds.
 
 ## The 44 phonemes
 
