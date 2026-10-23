@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="英語 44 個音素的 IPA 練習室：音標表、聽寫拼音、單字音標解析，英式 RP 與美式 GA 可切換。">
+<style>
+  html { color-scheme: light; }
+  :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<title>Sound Lab 音標練習室</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Noto+Sans:wght@400;500;700&display=swap">
+<style>
+  /* Layout: header band (title + accent switch + score), tab row, one working card per mode.
+     The phoneme keyboard is a dense grid that echoes the printed IPA chart. */
+  :root {
+    --bg: #eceff2;
+    --surface: #ffffff;
+    --surface-2: #e4e9ed;
+    --ink: #121a21;
+    --muted: #5b6b77;
+    --line: #ccd6dd;
+    --accent: #0b6e6a;
+    --accent-ink: #ffffff;
+    --accent-soft: #d6eae8;
+    --ochre: #8f5f13;
+    --ok: #1d7a4c;
+    --err: #b02a21;
+    --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --font-body: "Noto Sans", "Segoe UI", system-ui, sans-serif;
+    --font-ipa: "Noto Sans", "Charis SIL", "Doulos SIL", "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1419;
+      --surface: #161f27;
+      --surface-2: #1e2a34;
+      --ink: #e8eef2;
+      --muted: #95a7b4;
+      --line: #2d3b47;
+      --accent: #4ec9bd;
+      --accent-ink: #06231f;
+      --accent-soft: #15322f;
+      --ochre: #d9a65d;
+      --ok: #55c98d;
+      --err: #ef7d73;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1419;
+    --surface: #161f27;
+    --surface-2: #1e2a34;
+    --ink: #e8eef2;
+    --muted: #95a7b4;
+    --line: #2d3b47;
+    --accent: #4ec9bd;
+    --accent-ink: #06231f;
+    --accent-soft: #15322f;
+    --ochre: #d9a65d;
+    --ok: #55c98d;
+    --err: #ef7d73;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); }
+  body { margin: 0; font-family: var(--font-body); color: var(--ink); font-size: 16px; line-height: 1.5; }
+
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 56px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  .titlerow { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  h1 {
+    font-family: var(--font-display); font-weight: 800;
+    font-size: clamp(26px, 5vw, 38px); letter-spacing: -0.02em; margin: 0; text-wrap: balance;
+  }
+  h1 .slash { color: var(--accent); font-family: var(--font-ipa); font-weight: 500; }
+  .sub { color: var(--muted); font-size: 14px; margin: 4px 0 0; max-width: 46ch; }
+  .headright { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .score { font-family: var(--font-display); font-variant-numeric: tabular-nums; text-align: right; line-height: 1.2; }
+  .score b { font-size: 22px; }
+  .score span { display: block; font-family: var(--font-body); font-size: 12px; color: var(--muted); letter-spacing: 0.05em; }
+
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); }
+  .seg button { font: inherit; font-size: 13px; padding: 7px 14px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+
+  nav.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+  nav.tabs button {
+    font: inherit; font-size: 14px; padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer;
+  }
+  nav.tabs button:hover { color: var(--ink); }
+  nav.tabs button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px; display: flex; flex-direction: column; gap: 18px;
+  }
+  .card h2 {
+    font-family: var(--font-display); font-size: 14px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted); margin: 0; font-weight: 700;
+  }
+
+  button.btn { font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); padding: 10px 16px; }
+  button.btn:hover { border-color: var(--accent); }
+  button.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+  button.btn.primary:hover { filter: brightness(1.08); }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--ochre); outline-offset: 2px; }
+
+  .ipa { font-family: var(--font-ipa); }
+  .hintline { font-size: 13px; color: var(--muted); }
+
+  /* chart */
+  .group { display: flex; flex-direction: column; gap: 8px; }
+  .group h3 { margin: 0; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ochre); font-family: var(--font-display); }
+  .cells { display: grid; gap: 6px; }
+  .cells.vgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .cells.dgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .cells.cgrid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  @media (max-width: 780px) { .cells.cgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .cell {
+    position: relative; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2);
+    padding: 10px 4px 8px; text-align: center; cursor: pointer; font: inherit; color: var(--ink);
+    display: flex; flex-direction: column; gap: 1px; min-width: 0;
+  }
+  .cell.empty { visibility: hidden; pointer-events: none; }
+  .cell:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .cell .sym { font-family: var(--font-ipa); font-size: 21px; font-weight: 700; color: var(--accent); line-height: 1.2; }
+  .cell .ex { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+  .cell.voiceless { border-left: 3px solid var(--muted); }
+  .cell.voiced { border-left: 3px solid var(--ochre); }
+  .cell .v { position: absolute; top: 4px; right: 5px; font-size: 9px; color: var(--muted); }
+  .cell.voiced .v { color: var(--ochre); }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--muted); align-items: center; }
+  .legend i { display: inline-block; width: 3px; height: 13px; border-radius: 2px; margin-right: 6px; vertical-align: -2px; }
+  .caption { font-size: 12px; color: var(--muted); margin: 0; }
+  .count { font-family: var(--font-body); font-size: 11px; color: var(--muted); font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: 6px; }
+
+  /* prompt + options */
+  .prompt {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 22px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .prompt .big { font-family: var(--font-ipa); font-size: clamp(30px, 8vw, 46px); font-weight: 700; overflow-wrap: anywhere; }
+  .prompt .word { font-family: var(--font-display); font-size: clamp(28px, 7vw, 40px); font-weight: 700; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+
+  .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+  .opt {
+    font: inherit; cursor: pointer; text-align: left; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink); border-radius: 10px; padding: 14px 16px;
+    font-size: 19px; min-width: 0; overflow-wrap: anywhere; display: flex; align-items: center; gap: 10px;
+  }
+  .opt .key { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; flex: none; }
+  .opt:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+  .opt:disabled { cursor: default; }
+  .opt.right { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, transparent); font-weight: 700; }
+  .opt.wrong { border-color: var(--err); background: color-mix(in srgb, var(--err) 15%, transparent); }
+
+  .feedback { min-height: 24px; font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .feedback.good { color: var(--ok); }
+  .feedback.bad { color: var(--err); }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .spacer { flex: 1 1 auto; }
+
+  /* build */
+  .slot {
+    font-family: var(--font-ipa); font-size: clamp(24px, 6.5vw, 34px); min-height: 62px;
+    border: 2px dashed var(--line); border-radius: 12px; padding: 8px 14px;
+    display: flex; align-items: center; justify-content: center; gap: 2px;
+    overflow-wrap: anywhere; background: var(--surface-2); text-align: center;
+  }
+  .slot.filled { border-style: solid; border-color: var(--accent); }
+  .slot .tok.ok { color: var(--ok); }
+  .slot .tok.no { color: var(--err); text-decoration: underline wavy; }
+  .keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 6px; }
+  .key-btn {
+    font-family: var(--font-ipa); font-size: 19px; padding: 10px 4px; border: 1px solid var(--line);
+    border-radius: 8px; background: var(--surface-2); color: var(--ink); cursor: pointer; min-width: 0;
+  }
+  .key-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .key-btn.wide { grid-column: span 2; font-family: var(--font-body); font-size: 13px; }
+
+  /* lookup */
+  .lookrow { display: flex; gap: 8px; flex-wrap: wrap; }
+  #lookInput {
+    font: inherit; font-size: 17px; flex: 1 1 220px; min-width: 0; padding: 11px 14px;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); color: var(--ink);
+  }
+  .result { display: flex; flex-direction: column; gap: 10px; }
+  .wordcard {
+    border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: var(--surface-2);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .wordcard .wline { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .wordcard .w { font-family: var(--font-display); font-size: 24px; font-weight: 700; }
+  .wordcard .tr { font-family: var(--font-ipa); font-size: 24px; color: var(--accent); overflow-wrap: anywhere; }
+  .tag { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; color: var(--muted); }
+  .tag.guess { color: var(--ochre); border-color: var(--ochre); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-family: var(--font-ipa); font-size: 17px; border: 1px solid var(--line); border-radius: 8px;
+    padding: 5px 10px; background: var(--surface); cursor: pointer; color: var(--ink);
+  }
+  .chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .chip small { font-family: var(--font-body); font-size: 11px; color: var(--muted); margin-left: 5px; }
+
+  .meter { height: 6px; background: var(--surface-2); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+  .meter > i { display: block; height: 100%; background: var(--accent); width: 0%; transition: width .3s ease; }
+
+  footer.note { font-size: 12px; color: var(--muted); text-align: center; }
+  footer.note code { font-family: var(--font-ipa); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:14px">
+    <div class="titlerow">
+      <div>
+        <h1><span class="slash">/</span>Sound Lab<span class="slash">/</span></h1>
+        <p class="sub">英語 44 個音素：聽遍每一個音標、聽寫拼音、查單字音標。英式 RP 與美式 GA 隨時切換。</p>
+      </div>
+      <div class="headright">
+        <div class="seg" role="group" aria-label="口音">
+          <button type="button" id="accGB" aria-pressed="true">英式 RP</button>
+          <button type="button" id="accUS" aria-pressed="false">美式 GA</button>
+        </div>
+        <div class="score"><b id="scoreNum">0 / 0</b><span id="streakTxt">連對 0</span></div>
+      </div>
+    </div>
+    <div class="meter" aria-hidden="true"><i id="meterBar"></i></div>
+    <nav class="tabs" role="tablist" aria-label="練習模式">
+      <button role="tab" id="tab-chart" aria-selected="true" data-mode="chart">音標表</button>
+      <button role="tab" id="tab-build" aria-selected="false" data-mode="build">聽寫拼音</button>
+      <button role="tab" id="tab-look" aria-selected="false" data-mode="look">查單字音標</button>
+      <button role="tab" id="tab-listen" aria-selected="false" data-mode="listen">聽音選音標</button>
+      <button role="tab" id="tab-pairs" aria-selected="false" data-mode="pairs">最小對立對</button>
+    </nav>
+  </header>
+
+  <!-- CHART -->
+  <section class="card" id="panel-chart">
+    <h2 id="chartTitle">IPA chart · 點一下聽例字</h2>
+    <div id="chartGroups" style="display:flex;flex-direction:column;gap:18px"></div>
+    <p class="hintline" id="chartNote">每一格是一個音素與它的例字。聲音由瀏覽器的語音合成發出；語音合成唸不出孤立的音素，所以點下去聽到的是完整例字。</p>
+  </section>
+
+  <!-- BUILD (dictation) -->
+  <section class="card" id="panel-build" hidden>
+    <h2>聽寫拼音 · 聽到的字，把每個音都拼出來</h2>
+    <div class="prompt">
+      <button class="btn primary" id="buildPlay" type="button">▶ 播放單字</button>
+      <div class="word" id="buildWord" style="font-size:20px;color:var(--muted)">先聽，拼不出來再看字</div>
+      <div class="row" style="justify-content:center">
+        <button class="btn" id="buildReveal" type="button">顯示拼法</button>
+        <button class="btn" id="buildSlow" type="button">慢速重播</button>
+      </div>
+    </div>
+    <div class="slot" id="buildSlot">／按下方符號開始／</div>
+    <div class="row">
+      <button class="btn primary" id="buildCheck" type="button">檢查</button>
+      <button class="btn" id="buildHint" type="button">提示下一個音</button>
+      <div class="spacer"></div>
+      <button class="btn" id="buildSkip" type="button">換一題 →</button>
+    </div>
+    <div class="feedback" id="buildFb"></div>
+    <div class="keys" id="buildKeys"></div>
+  </section>
+
+  <!-- LOOKUP -->
+  <section class="card" id="panel-look" hidden>
+    <h2>查單字音標 · 輸入單字或一句話</h2>
+    <div class="lookrow">
+      <input id="lookInput" type="text" placeholder="例如：comfortable、I would like some water" autocomplete="off" spellcheck="false">
+      <button class="btn primary" id="lookGo" type="button">解析</button>
+    </div>
+    <div class="result" id="lookResult"></div>
+    <p class="hintline">字典收錄的字標為「字典」；沒收錄的用拼字規則推測，標為「推測」——規則拼不出英文的所有例外，請當參考。</p>
+  </section>
+
+  <!-- LISTEN -->
+  <section class="card" id="panel-listen" hidden>
+    <h2>聽音選音標 · 聽到的是哪一串？</h2>
+    <div class="prompt">
+      <button class="btn primary" id="listenPlay" type="button">▶ 播放單字</button>
+      <div class="hintline" id="listenHint">按空白鍵可重播，按 1–4 選答案</div>
+    </div>
+    <div class="options" id="listenOpts"></div>
+    <div class="feedback" id="listenFb"></div>
+    <div class="row"><div class="spacer"></div><button class="btn" id="listenNext" type="button" hidden>下一題 →</button></div>
+  </section>
+
+  <!-- PAIRS -->
+  <section class="card" id="panel-pairs" hidden>
+    <h2>最小對立對 · 只差一個音，你聽到哪一個？</h2>
+    <div class="prompt">
+      <button class="btn primary" id="pairsPlay" type="button">▶ 播放</button>
+      <div class="hintline" id="pairsHint">兩個字只差一個音素</div>
+    </div>
+    <div class="options" id="pairsOpts"></div>
+    <div class="feedback" id="pairsFb"></div>
+    <div class="row"><div class="spacer"></div><button class="btn" id="pairsNext" type="button" hidden>下一題 →</button></div>
+  </section>
+
+  <footer class="note">重音符號 <code>ˈ ˌ</code> 在檢查時會被忽略，音素拼對就算過。</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============ dictionary: word | RP | GA (GA omitted when identical) ============ */
+  const RAW = [
+    "the|ðə","and|ænd","are|ɑː|ɑːr","you|juː","they|ðeɪ","was|wɒz|wʌz","were|wɜː|wɝː",
+    "have|hæv","does|dʌz","of|ɒv|ʌv","for|fɔː|fɔːr","with|wɪð","this|ðɪs","there|ðeə|ðer",
+    "here|hɪə|hɪr","what|wɒt|wʌt","where|weə|wer","who|huː","why|waɪ","how|haʊ","not|nɒt|nɑːt",
+    "would|wʊd","should|ʃʊd","could|kʊd","water|ˈwɔːtə|ˈwɔːtɚ","teacher|ˈtiːtʃə|ˈtiːtʃɚ",
+    "student|ˈstjuːdnt|ˈstuːdnt","school|skuːl","book|bʊk","pen|pen","paper|ˈpeɪpə|ˈpeɪpɚ",
+    "computer|kəmˈpjuːtə|kəmˈpjuːtɚ","phone|fəʊn|foʊn","music|ˈmjuːzɪk","picture|ˈpɪktʃə|ˈpɪktʃɚ",
+    "language|ˈlæŋɡwɪdʒ","word|wɜːd|wɝːd","sentence|ˈsentəns","question|ˈkwestʃən",
+    "answer|ˈɑːnsə|ˈænsɚ","problem|ˈprɒbləm|ˈprɑːbləm","people|ˈpiːpl","person|ˈpɜːsn|ˈpɝːsn",
+    "family|ˈfæməli","mother|ˈmʌðə|ˈmʌðɚ","father|ˈfɑːðə|ˈfɑːðɚ","brother|ˈbrʌðə|ˈbrʌðɚ",
+    "sister|ˈsɪstə|ˈsɪstɚ","friend|frend","child|tʃaɪld","children|ˈtʃɪldrən","man|mæn",
+    "woman|ˈwʊmən","women|ˈwɪmɪn","house|haʊs","home|həʊm|hoʊm","room|ruːm","door|dɔː|dɔːr",
+    "window|ˈwɪndəʊ|ˈwɪndoʊ","table|ˈteɪbl","chair|tʃeə|tʃer","garden|ˈɡɑːdn|ˈɡɑːrdn",
+    "city|ˈsɪti","country|ˈkʌntri","world|wɜːld|wɝːld","food|fuːd","bread|bred",
+    "butter|ˈbʌtə|ˈbʌtɚ","cheese|tʃiːz","chocolate|ˈtʃɒklət|ˈtʃɑːklət","coffee|ˈkɒfi|ˈkɔːfi",
+    "tea|tiː","milk|mɪlk","orange|ˈɒrɪndʒ|ˈɔːrɪndʒ","apple|ˈæpl","banana|bəˈnɑːnə|bəˈnænə",
+    "vegetable|ˈvedʒtəbl","sugar|ˈʃʊɡə|ˈʃʊɡɚ","salt|sɒlt|sɔːlt","breakfast|ˈbrekfəst","lunch|lʌntʃ",
+    "dinner|ˈdɪnə|ˈdɪnɚ","morning|ˈmɔːnɪŋ|ˈmɔːrnɪŋ","evening|ˈiːvnɪŋ","night|naɪt","today|təˈdeɪ",
+    "tomorrow|təˈmɒrəʊ|təˈmɑːroʊ","yesterday|ˈjestədeɪ|ˈjestɚdeɪ","monday|ˈmʌndeɪ",
+    "tuesday|ˈtjuːzdeɪ|ˈtuːzdeɪ","wednesday|ˈwenzdeɪ","thursday|ˈθɜːzdeɪ|ˈθɝːzdeɪ","friday|ˈfraɪdeɪ",
+    "saturday|ˈsætədeɪ|ˈsætɚdeɪ","sunday|ˈsʌndeɪ","summer|ˈsʌmə|ˈsʌmɚ","winter|ˈwɪntə|ˈwɪntɚ",
+    "weather|ˈweðə|ˈweðɚ","rain|reɪn","snow|snəʊ|snoʊ","sun|sʌn","moon|muːn","star|stɑː|stɑːr",
+    "sky|skaɪ","sea|siː","mountain|ˈmaʊntɪn|ˈmaʊntn","river|ˈrɪvə|ˈrɪvɚ","tree|triː",
+    "flower|ˈflaʊə|ˈflaʊɚ","animal|ˈænɪml","dog|dɒɡ|dɔːɡ","cat|kæt","bird|bɜːd|bɝːd","fish|fɪʃ",
+    "horse|hɔːs|hɔːrs","car|kɑː|kɑːr","bus|bʌs","train|treɪn","plane|pleɪn","road|rəʊd|roʊd",
+    "street|striːt","work|wɜːk|wɝːk","job|dʒɒb|dʒɑːb","money|ˈmʌni","time|taɪm","year|jɪə|jɪr",
+    "hour|ˈaʊə|ˈaʊɚ","minute|ˈmɪnɪt","week|wiːk","month|mʌnθ","number|ˈnʌmbə|ˈnʌmbɚ",
+    "colour|ˈkʌlə|ˈkʌlɚ","red|red","blue|bluː","green|ɡriːn","yellow|ˈjeləʊ|ˈjeloʊ","black|blæk",
+    "white|waɪt","purple|ˈpɜːpl|ˈpɝːpl","big|bɪɡ","small|smɔːl","long|lɒŋ|lɔːŋ","short|ʃɔːt|ʃɔːrt",
+    "good|ɡʊd","bad|bæd","happy|ˈhæpi","sad|sæd","beautiful|ˈbjuːtɪfl","comfortable|ˈkʌmftəbl|ˈkʌmfɚtəbl",
+    "difficult|ˈdɪfɪkəlt","easy|ˈiːzi","important|ɪmˈpɔːtnt|ɪmˈpɔːrtnt","interesting|ˈɪntrəstɪŋ",
+    "different|ˈdɪfrənt","famous|ˈfeɪməs","careful|ˈkeəfl|ˈkerfl","serious|ˈsɪəriəs|ˈsɪriəs",
+    "enough|ɪˈnʌf","through|θruː","thought|θɔːt|θɑːt","though|ðəʊ|ðoʊ","although|ɔːlˈðəʊ|ɔːlˈðoʊ",
+    "island|ˈaɪlənd","knife|naɪf","know|nəʊ|noʊ","write|raɪt","listen|ˈlɪsn","speak|spiːk","read|riːd",
+    "learn|lɜːn|lɝːn","teach|tiːtʃ","think|θɪŋk","walk|wɔːk|wɑːk","talk|tɔːk|tɑːk","run|rʌn",
+    "jump|dʒʌmp","sing|sɪŋ","dance|dɑːns|dæns","laugh|lɑːf|læf","love|lʌv","like|laɪk",
+    "want|wɒnt|wɑːnt","need|niːd","make|meɪk","take|teɪk","give|ɡɪv","get|ɡet","come|kʌm",
+    "look|lʊk","see|siː","hear|hɪə|hɪr","feel|fiːl","usually|ˈjuːʒuəli","journey|ˈdʒɜːni|ˈdʒɝːni",
+    "measure|ˈmeʒə|ˈmeʒɚ","vision|ˈvɪʒn","decision|dɪˈsɪʒn","television|ˈtelɪvɪʒn","clothes|kləʊðz|kloʊðz",
+    "shoe|ʃuː","shirt|ʃɜːt|ʃɝːt","hair|heə|her","head|hed","hand|hænd","eye|aɪ","ear|ɪə|ɪr",
+    "mouth|maʊθ","nose|nəʊz|noʊz","tooth|tuːθ","foot|fʊt","leg|leɡ","heart|hɑːt|hɑːrt",
+    "doctor|ˈdɒktə|ˈdɑːktɚ","nurse|nɜːs|nɝːs","police|pəˈliːs","office|ˈɒfɪs|ˈɔːfɪs","company|ˈkʌmpəni",
+    "business|ˈbɪznəs","market|ˈmɑːkɪt|ˈmɑːrkɪt","shop|ʃɒp|ʃɑːp","store|stɔː|stɔːr",
+    "restaurant|ˈrestrɒnt|ˈrestərɑːnt","hotel|həʊˈtel|hoʊˈtel","hospital|ˈhɒspɪtl|ˈhɑːspɪtl",
+    "library|ˈlaɪbrəri|ˈlaɪbreri","university|ˌjuːnɪˈvɜːsəti|ˌjuːnɪˈvɝːsəti","science|ˈsaɪəns",
+    "history|ˈhɪstri","english|ˈɪŋɡlɪʃ","chinese|ˌtʃaɪˈniːz","photograph|ˈfəʊtəɡrɑːf|ˈfoʊtəɡræf",
+    "photography|fəˈtɒɡrəfi|fəˈtɑːɡrəfi","idea|aɪˈdɪə|aɪˈdiːə","example|ɪɡˈzɑːmpl|ɪɡˈzæmpl",
+    "sure|ʃʊə|ʃʊr","tour|tʊə|tʊr","poor|pɔː|pʊr","boy|bɔɪ","noise|nɔɪz","voice|vɔɪs","choice|tʃɔɪs",
+    "ship|ʃɪp","sheep|ʃiːp","live|lɪv","leave|liːv","full|fʊl","fool|fuːl","cup|kʌp","hat|hæt",
+    "hut|hʌt","bed|bed","bag|bæɡ","back|bæk","cold|kəʊld|koʊld","gold|ɡəʊld|ɡoʊld","goat|ɡəʊt|ɡoʊt",
+    "coat|kəʊt|koʊt","cot|kɒt|kɑːt","caught|kɔːt|kɑːt","court|kɔːt|kɔːrt","girl|ɡɜːl|ɡɝːl","day|deɪ",
+    "my|maɪ","go|ɡəʊ|ɡoʊ","now|naʊ","yes|jes","van|væn","wine|waɪn","vine|vaɪn","very|ˈveri",
+    "berry|ˈberi","light|laɪt","right|raɪt","glass|ɡlɑːs|ɡlæs","grass|ɡrɑːs|ɡræs","three|θriː",
+    "free|friː","thin|θɪn","sin|sɪn","thing|θɪŋ","sink|sɪŋk","sung|sʌŋ","ran|ræn","rang|ræŋ",
+    "cheap|tʃiːp","jeep|dʒiːp","share|ʃeə|ʃer","key|kiː","about|əˈbaʊt","hot|hɒt|hɑːt","pot|pɒt|pɑːt","zoo|zuː","pet|pet","sheet|ʃiːt"
+  ];
+
+  const DICT = Object.create(null);
+  const ENTRIES = [];
+  RAW.forEach(line => {
+    const p = line.split("|");
+    const e = { w: p[0], gb: p[1], us: p[2] || p[1] };
+    DICT[e.w] = e;
+    ENTRIES.push(e);
+  });
+
+  /* ============ IPA machinery ============ */
+  const MULTI = ["tʃ","dʒ","iː","ɑː","ɔː","uː","ɜː","ɝː","eɪ","aɪ","ɔɪ","əʊ","oʊ","aʊ","ɪə","eə","ʊə","ɪr","er","ʊr","ɚ"];
+  function tokenize(ipa) {
+    const out = [];
+    let i = 0;
+    while (i < ipa.length) {
+      let hit = null;
+      for (let k = 0; k < MULTI.length; k++) if (ipa.startsWith(MULTI[k], i)) { hit = MULTI[k]; break; }
+      if (hit) { out.push(hit); i += hit.length; } else { out.push(ipa[i]); i += 1; }
+    }
+    return out;
+  }
+  const stripStress = s => s.replace(/[ˈˌ.]/g, "");
+
+  const CONFUSE = {
+    "iː":["ɪ","e"], "ɪ":["iː","e"], "e":["æ","ɪ"], "æ":["e","ʌ","ɑː"], "ʌ":["æ","ɑː","ɒ"],
+    "ɑː":["ʌ","æ","ɔː"], "ɒ":["ɔː","əʊ","ʌ"], "ɔː":["ɒ","əʊ","ɜː"], "ʊ":["uː","ə"], "uː":["ʊ","ʌ"],
+    "ɜː":["ə","ɔː"], "ɝː":["ɚ","ɔː"], "ɚ":["ə","ɝː"], "ə":["ʌ","ɜː"], "eɪ":["e","aɪ"],
+    "aɪ":["eɪ","ɔɪ"], "ɔɪ":["aɪ","ɔː"], "əʊ":["aʊ","ɔː","ɒ"], "oʊ":["aʊ","ɔː"], "aʊ":["əʊ","ɑː"],
+    "ɪə":["eə","iː"], "eə":["ɪə","e"], "ʊə":["ɔː","ʊ"],
+    "θ":["s","f","ð"], "ð":["z","d","θ"], "ʃ":["s","tʃ"], "ʒ":["dʒ","z"], "tʃ":["ʃ","dʒ"],
+    "dʒ":["tʃ","ʒ"], "s":["θ","z"], "z":["s","ð"], "f":["v","θ"], "v":["w","b","f"],
+    "ŋ":["n","m"], "n":["ŋ","m"], "m":["n"], "l":["r"], "r":["l","w"], "w":["v","r"],
+    "j":["dʒ"], "h":["f"], "p":["b"], "b":["p","v"], "t":["d"], "d":["t","ð"], "k":["ɡ"], "ɡ":["k"]
+  };
+
+  /* The 44 phonemes of English, laid out like the BBC / Sounds Right phonemic chart:
+     monophthongs in a 4x3 block (close to open), diphthongs beside them, consonants in
+     voiceless/voiced pairs across three rows. */
+  const VOICELESS = ["p","t","tʃ","k","f","θ","s","ʃ","h"];
+  const CONS_ROWS = [
+    [["p","pen"],["b","bag"],["t","tea"],["d","dog"],["tʃ","cheese"],["dʒ","jump"],["k","key"],["ɡ","girl"]],
+    [["f","fish"],["v","van"],["θ","think"],["ð","this"],["s","sun"],["z","zoo"],["ʃ","shoe"],["ʒ","measure"]],
+    [["m","man"],["n","nose"],["ŋ","sing"],["h","house"],["l","leg"],["r","red"],["w","wine"],["j","yes"]]
+  ];
+  const CHARTS = {
+    gb: {
+      label: "RP 英式 · 44 音",
+      mono: [["iː","sheep"],["ɪ","ship"],["ʊ","book"],["uː","food"],
+             ["e","bed"],["ə","about"],["ɜː","bird"],["ɔː","door"],
+             ["æ","cat"],["ʌ","cup"],["ɑː","car"],["ɒ","hot"]],
+      diph: [["ɪə","here"],["eɪ","day"],null,null,
+             ["ʊə","tour"],["ɔɪ","boy"],["əʊ","go"],null,
+             ["eə","hair"],["aɪ","my"],["aʊ","now"],null],
+      cons: CONS_ROWS,
+      note: "英式 RP 的 44 個音：12 個單母音 + 8 個雙母音 + 24 個子音。"
+    },
+    us: {
+      label: "GA 美式",
+      mono: [["iː","sheep"],["ɪ","ship"],["ʊ","book"],["uː","food"],
+             ["e","bed"],["ə","about"],["ɝː","bird"],["ɔː","thought"],
+             ["æ","cat"],["ʌ","cup"],["ɑː","hot"],["ɚ","teacher"]],
+      diph: [["eɪ","day"],["aɪ","my"],["ɔɪ","boy"],null,
+             ["oʊ","go"],["aʊ","now"],null,null],
+      cons: CONS_ROWS,
+      note: "美式 GA 把 /ɒ/ 併入 /ɑː/，也沒有 /ɪə eə ʊə/：那些 r 音改用 /ɪr er ʊr/ 拼。"
+    }
+  };
+
+  /* ============ letter-to-sound fallback ============
+     Emits a neutral form with "ʳ" marking r-coloured spots, then renders per accent. */
+  const RULES = [
+    // three+ letter clusters and endings first
+    [/^tion\b/, "ʃən"], [/^sion\b/, "ʒən"], [/^ssion\b/, "ʃən"], [/^cious\b/, "ʃəs"], [/^tious\b/, "ʃəs"],
+    [/^ture\b/, "tʃəʳ"], [/^sure\b/, "ʒəʳ"], [/^ought\b/, "ɔːt"], [/^aught\b/, "ɔːt"],
+    [/^eigh/, "eɪ"], [/^ight/, "aɪt"],
+    [/^tch/, "tʃ"], [/^dge/, "dʒ"],
+    [/^air/, "eəʳ"], [/^are\b/, "eəʳ"], [/^ear\b/, "ɪəʳ"], [/^eer/, "ɪəʳ"], [/^ere\b/, "ɪəʳ"],
+    [/^oor/, "ɔːʳ"], [/^our\b/, "aʊəʳ"], [/^our/, "ɜːʳ"], [/^ure\b/, "jʊəʳ"],
+    [/^ar/, "ɑːʳ"], [/^or/, "ɔːʳ"], [/^er\b/, "əʳ"], [/^er/, "ɜːʳ"], [/^ir/, "ɜːʳ"], [/^ur/, "ɜːʳ"],
+    [/^ch/, "tʃ"], [/^sh/, "ʃ"], [/^th/, "θ"], [/^ph/, "f"], [/^wh/, "w"], [/^ck/, "k"],
+    [/^qu/, "kw"], [/^wr/, "r"], [/^kn/, "n"], [/^gn\b/, "n"], [/^mb\b/, "m"], [/^ng/, "ŋ"],
+    [/^ee/, "iː"], [/^ea/, "iː"], [/^oo/, "uː"], [/^ou/, "aʊ"], [/^ow\b/, "aʊ"], [/^ow/, "aʊ"],
+    [/^oi/, "ɔɪ"], [/^oy/, "ɔɪ"], [/^ai/, "eɪ"], [/^ay/, "eɪ"], [/^au/, "ɔː"], [/^aw/, "ɔː"],
+    [/^ew/, "juː"], [/^oa/, "əʊ"], [/^ie\b/, "aɪ"], [/^ie/, "iː"], [/^ei/, "eɪ"], [/^ue\b/, "uː"],
+    // magic e
+    [/^a(?=[^aeiou]e\b)/, "eɪ"], [/^i(?=[^aeiou]e\b)/, "aɪ"], [/^o(?=[^aeiou]e\b)/, "əʊ"],
+    [/^u(?=[^aeiou]e\b)/, "juː"], [/^e(?=[^aeiou]e\b)/, "iː"],
+    // single letters
+    [/^c(?=[eiy])/, "s"], [/^c/, "k"], [/^g(?=[eiy])/, "dʒ"], [/^g/, "ɡ"],
+    [/^x/, "ks"], [/^y\b/, "i"], [/^y(?=[aeiou])/, "j"], [/^y/, "ɪ"],
+    [/^e\b/, ""], [/^a/, "æ"], [/^e/, "e"], [/^i/, "ɪ"], [/^o/, "ɒ"], [/^u/, "ʌ"],
+    [/^b/, "b"], [/^d/, "d"], [/^f/, "f"], [/^h/, "h"], [/^j/, "dʒ"], [/^k/, "k"], [/^l/, "l"],
+    [/^m/, "m"], [/^n/, "n"], [/^p/, "p"], [/^r/, "r"], [/^s/, "s"], [/^t/, "t"], [/^v/, "v"],
+    [/^w/, "w"], [/^z/, "z"]
+  ];
+  function guessNeutral(word) {
+    let s = word.toLowerCase().replace(/[^a-z]/g, "");
+    let out = "";
+    let guard = 0;
+    while (s.length && guard++ < 60) {
+      let matched = false;
+      for (let i = 0; i < RULES.length; i++) {
+        const m = s.match(RULES[i][0]);
+        if (m) { out += RULES[i][1]; s = s.slice(m[0].length); matched = true; break; }
+      }
+      if (!matched) s = s.slice(1);
+    }
+    return out;
+  }
+  const US_MAP = [["ɜːʳ","ɝː"],["əʳ","ɚ"],["ɑːʳ","ɑːr"],["ɔːʳ","ɔːr"],["eəʳ","er"],["ɪəʳ","ɪr"],["aʊəʳ","aʊɚ"],["jʊəʳ","jʊr"],["ʳ","r"],["ɒ","ɑː"],["əʊ","oʊ"]];
+  const GB_MAP = [["ʳ",""]];
+  function renderNeutral(neutral, acc) {
+    let s = neutral;
+    const map = acc === "us" ? US_MAP : GB_MAP;
+    map.forEach(p => { s = s.split(p[0]).join(p[1]); });
+    return s;
+  }
+
+  /* ============ helpers ============ */
+  const $ = s => document.querySelector(s);
+  const rnd = n => Math.floor(Math.random() * n);
+  const pick = a => a[rnd(a.length)];
+  function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = rnd(i + 1); const t = b[i]; b[i] = b[j]; b[j] = t; } return b; }
+
+  let accent = "gb";
+  try { const a = localStorage.getItem("soundlab.accent"); if (a === "us" || a === "gb") accent = a; } catch (e) {}
+  const ipaOf = e => accent === "us" ? e.us : e.gb;
+  const chart = () => CHARTS[accent];
+  function allCells() {
+    const c = chart();
+    const out = [];
+    c.mono.concat(c.diph).forEach(i => { if (i) out.push(i); });
+    c.cons.forEach(r => r.forEach(i => out.push(i)));
+    return out;
+  }
+  const symbols = () => { const o = []; allCells().forEach(i => { if (o.indexOf(i[0]) < 0) o.push(i[0]); }); return o; };
+
+  function makeDistractor(ipa, used) {
+    const toks = tokenize(ipa);
+    const idxs = shuffle(toks.map((t, i) => i).filter(i => CONFUSE[toks[i]]));
+    for (const i of idxs) for (const alt of shuffle(CONFUSE[toks[i]])) {
+      const c = toks.slice(); c[i] = alt;
+      const s = c.join("");
+      if (s !== ipa && used.indexOf(s) < 0) return s;
+    }
+    return null;
+  }
+
+  /* ============ speech ============ */
+  let voices = [];
+  function loadVoices() { if ("speechSynthesis" in window) voices = speechSynthesis.getVoices() || []; }
+  if ("speechSynthesis" in window) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+  function voiceFor(acc) {
+    if (!voices.length) loadVoices();
+    const want = acc === "us" ? /en[-_]US/i : /en[-_]GB/i;
+    return voices.find(v => want.test(v.lang)) || voices.find(v => /^en/i.test(v.lang)) || null;
+  }
+  function say(text, rate) {
+    if (!("speechSynthesis" in window)) return false;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      const v = voiceFor(accent);
+      if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = accent === "us" ? "en-US" : "en-GB"; }
+      u.rate = rate || 0.85;
+      speechSynthesis.speak(u);
+      return true;
+    } catch (e) { return false; }
+  }
+  function speechNote() {
+    if (!("speechSynthesis" in window)) return "這個瀏覽器沒有語音合成，聽力題會顯示文字提示。";
+    const v = voiceFor(accent);
+    if (!v) return "系統還沒載入英語語音，第一次點擊後可能需要再按一次。";
+    if (accent === "us" && !/en[-_]US/i.test(v.lang)) return "系統沒有美式英語語音，改用 " + v.lang + " 發音；音標仍是美式標註。";
+    if (accent === "gb" && !/en[-_]GB/i.test(v.lang)) return "系統沒有英式英語語音，改用 " + v.lang + " 發音；音標仍是英式標註。";
+    return "發音語音：" + v.name + "（" + v.lang + "）。語音合成唸不出孤立音素，點格子聽到的是完整例字。";
+  }
+
+  /* ============ score ============ */
+  const state = { right: 0, total: 0, streak: 0, best: 0 };
+  try { const r = localStorage.getItem("soundlab.v2"); if (r) { const s = JSON.parse(r); if (s && typeof s.right === "number") { state.right = s.right; state.total = s.total; state.best = s.best || 0; } } } catch (e) {}
+  function paintScore() {
+    $("#scoreNum").textContent = state.right + " / " + state.total;
+    $("#streakTxt").textContent = "連對 " + state.streak + (state.best ? "・最佳 " + state.best : "");
+    $("#meterBar").style.width = (state.total ? Math.round(state.right / state.total * 100) : 0) + "%";
+  }
+  function mark(ok) {
+    state.total++;
+    if (ok) { state.right++; state.streak++; if (state.streak > state.best) state.best = state.streak; } else state.streak = 0;
+    try { localStorage.setItem("soundlab.v2", JSON.stringify({ right: state.right, total: state.total, best: state.best })); } catch (e) {}
+    paintScore();
+  }
+  paintScore();
+
+  /* ============ chart ============ */
+  function makeCell(it, kind) {
+    if (!it) { const e = document.createElement("div"); e.className = "cell empty"; return e; }
+    const ex = DICT[it[1]];
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "cell" + (kind === "cons" ? (VOICELESS.indexOf(it[0]) >= 0 ? " voiceless" : " voiced") : "");
+    if (kind === "cons") {
+      const v = document.createElement("span");
+      v.className = "v";
+      v.textContent = VOICELESS.indexOf(it[0]) >= 0 ? "清" : "濁";
+      b.appendChild(v);
+    }
+    const sym = document.createElement("span"); sym.className = "sym"; sym.textContent = "/" + it[0] + "/";
+    const w = document.createElement("span"); w.className = "ex"; w.textContent = it[1];
+    const tr = document.createElement("span"); tr.className = "ex ipa"; tr.textContent = ex ? "/" + ipaOf(ex) + "/" : "";
+    b.appendChild(sym); b.appendChild(w); b.appendChild(tr);
+    b.title = it[1] + (ex ? " /" + ipaOf(ex) + "/" : "");
+    b.addEventListener("click", () => say(it[1], 0.75));
+    return b;
+  }
+  function section(title, count, cls, items, kind, caption) {
+    const wrap = document.createElement("div");
+    wrap.className = "group";
+    const h = document.createElement("h3");
+    h.textContent = title;
+    const c = document.createElement("span");
+    c.className = "count";
+    c.textContent = count + " 個";
+    h.appendChild(c);
+    const cells = document.createElement("div");
+    cells.className = "cells " + cls;
+    items.forEach(it => cells.appendChild(makeCell(it, kind)));
+    wrap.appendChild(h);
+    wrap.appendChild(cells);
+    if (caption) { const p = document.createElement("p"); p.className = "caption"; p.textContent = caption; wrap.appendChild(p); }
+    return wrap;
+  }
+  function paintChart() {
+    const c = chart();
+    const host = $("#chartGroups");
+    host.innerHTML = "";
+    const nMono = c.mono.filter(Boolean).length;
+    const nDiph = c.diph.filter(Boolean).length;
+    host.appendChild(section("單母音 monophthongs", nMono, "vgrid", c.mono, "vowel",
+      "由上到下舌位由高到低，左邊偏前、右邊偏後；/ː/ 表示長音。"));
+    host.appendChild(section("雙母音 diphthongs", nDiph, "dgrid", c.diph, "vowel",
+      "一個音節內從前一個母音滑向後一個母音。"));
+    const cons = [];
+    c.cons.forEach(r => r.forEach(i => cons.push(i)));
+    host.appendChild(section("子音 consonants", cons.length, "cgrid", cons, "cons",
+      "每一組左清右濁：/p b/、/t d/、/tʃ dʒ/、/k ɡ/、/f v/、/θ ð/、/s z/、/ʃ ʒ/ 的口型相同，差別只在聲帶振不振動。"));
+    const legend = document.createElement("div");
+    legend.className = "legend";
+    legend.innerHTML = '<span><i style="background:var(--muted)"></i>清音 voiceless（聲帶不振動）</span>'
+      + '<span><i style="background:var(--ochre)"></i>濁音 voiced（聲帶振動）</span>'
+      + "<span>總計 " + (nMono + nDiph + cons.length) + " 個音素</span>";
+    host.appendChild(legend);
+    $("#chartTitle").textContent = c.label + " IPA chart · 點一下聽例字";
+    $("#chartNote").textContent = c.note + " " + speechNote();
+  }
+
+  /* ============ options renderer ============ */
+  function renderOptions(host, options, labelOf, isCorrect, onPick) {
+    host.innerHTML = "";
+    options.forEach((o, i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "opt";
+      const k = document.createElement("span"); k.className = "key"; k.textContent = String(i + 1);
+      const t = document.createElement("span"); t.className = "ipa"; t.textContent = labelOf(o);
+      b.appendChild(k); b.appendChild(t);
+      b.addEventListener("click", () => {
+        if (b.disabled) return;
+        Array.prototype.forEach.call(host.children, el => { el.disabled = true; });
+        const ok = isCorrect(o);
+        b.classList.add(ok ? "right" : "wrong");
+        if (!ok) Array.prototype.forEach.call(host.children, (el, j) => { if (isCorrect(options[j])) el.classList.add("right"); });
+        onPick(ok, o);
+      });
+      host.appendChild(b);
+    });
+  }
+
+  /* ============ mode: build (dictation) ============ */
+  let buildQ = null;
+  function paintKeyboard() {
+    const host = $("#buildKeys");
+    host.innerHTML = "";
+    symbols().forEach(s => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "key-btn"; b.textContent = s;
+      b.addEventListener("click", () => { if (buildQ && !buildQ.done) { buildQ.typed.push(s); paintBuild(); } });
+      host.appendChild(b);
+    });
+    [["← 刪除", () => { buildQ.typed.pop(); }], ["清空", () => { buildQ.typed = []; }]].forEach(p => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "key-btn wide"; b.textContent = p[0];
+      b.addEventListener("click", () => { if (buildQ && !buildQ.done) { p[1](); paintBuild(); } });
+      host.appendChild(b);
+    });
+  }
+  function paintBuild() {
+    const slot = $("#buildSlot");
+    slot.innerHTML = "";
+    if (!buildQ || !buildQ.typed.length) { slot.textContent = "／按下方符號開始／"; slot.classList.remove("filled"); return; }
+    slot.classList.add("filled");
+    const want = tokenize(buildQ.ipa);
+    slot.appendChild(document.createTextNode("/"));
+    buildQ.typed.forEach((t, i) => {
+      const s = document.createElement("span");
+      s.className = "tok" + (buildQ.checked ? (want[i] === t ? " ok" : " no") : "");
+      s.textContent = t;
+      slot.appendChild(s);
+    });
+    slot.appendChild(document.createTextNode("/"));
+  }
+  function newBuild() {
+    const pool = ENTRIES.filter(e => stripStress(ipaOf(e)).length <= 9);
+    const e = pick(pool);
+    buildQ = { word: e.w, ipa: stripStress(ipaOf(e)), typed: [], checked: false, done: false };
+    $("#buildWord").textContent = "先聽，拼不出來再看字";
+    $("#buildWord").style.color = "var(--muted)";
+    $("#buildWord").style.fontSize = "20px";
+    $("#buildFb").textContent = ""; $("#buildFb").className = "feedback";
+    paintBuild();
+    say(e.w);
+  }
+  function revealWord() {
+    if (!buildQ) return;
+    $("#buildWord").textContent = buildQ.word;
+    $("#buildWord").style.color = "var(--ink)";
+    $("#buildWord").style.fontSize = "";
+  }
+  $("#buildPlay").addEventListener("click", () => { if (buildQ) say(buildQ.word); });
+  $("#buildSlow").addEventListener("click", () => { if (buildQ) say(buildQ.word, 0.55); });
+  $("#buildReveal").addEventListener("click", revealWord);
+  $("#buildSkip").addEventListener("click", newBuild);
+  $("#buildHint").addEventListener("click", () => {
+    if (!buildQ || buildQ.done) return;
+    const want = tokenize(buildQ.ipa);
+    let i = 0;
+    while (i < buildQ.typed.length && i < want.length && buildQ.typed[i] === want[i]) i++;
+    buildQ.typed = want.slice(0, Math.min(i + 1, want.length));
+    buildQ.checked = false;
+    paintBuild();
+    $("#buildFb").className = "feedback";
+    $("#buildFb").textContent = "提示：第 " + Math.min(i + 1, want.length) + " 個音是 /" + want[Math.min(i, want.length - 1)] + "/";
+  });
+  $("#buildCheck").addEventListener("click", () => {
+    if (!buildQ || buildQ.done) return;
+    const ok = buildQ.typed.join("") === buildQ.ipa;
+    buildQ.checked = true;
+    paintBuild();
+    if (!ok) { mark(false); }
+    else { buildQ.done = true; mark(true); }
+    const fb = $("#buildFb");
+    fb.className = "feedback " + (ok ? "good" : "bad");
+    fb.innerHTML = ok
+      ? '✓ 正確 <b>' + buildQ.word + '</b> <span class="ipa">/' + buildQ.ipa + "/</span>"
+      : '✗ 再試一次（紅色是錯的音）。正確是 <span class="ipa">/' + buildQ.ipa + "/</span>";
+    if (!ok) revealWord();
+    if (ok) setTimeout(newBuild, 1100);
+  });
+
+  /* ============ mode: lookup ============ */
+  function analyse(raw) {
+    const words = raw.toLowerCase().split(/[^a-z']+/).filter(Boolean);
+    const host = $("#lookResult");
+    host.innerHTML = "";
+    if (!words.length) { host.innerHTML = '<p class="hintline">請輸入英文單字。</p>'; return; }
+    words.slice(0, 12).forEach(w => {
+      const key = w.replace(/'/g, "");
+      const e = DICT[key];
+      const known = !!e;
+      const ipa = known ? ipaOf(e) : renderNeutral(guessNeutral(key), accent);
+      const card = document.createElement("div");
+      card.className = "wordcard";
+
+      const line = document.createElement("div");
+      line.className = "wline";
+      const ws = document.createElement("span"); ws.className = "w"; ws.textContent = w;
+      const tr = document.createElement("span"); tr.className = "tr"; tr.textContent = "/" + ipa + "/";
+      const tag = document.createElement("span");
+      tag.className = "tag" + (known ? "" : " guess");
+      tag.textContent = known ? "字典 · " + (accent === "us" ? "GA" : "RP") : "推測 · " + (accent === "us" ? "GA" : "RP");
+      const play = document.createElement("button");
+      play.type = "button"; play.className = "btn"; play.textContent = "▶ 聽";
+      play.addEventListener("click", () => say(w, 0.8));
+      line.appendChild(ws); line.appendChild(tr); line.appendChild(tag); line.appendChild(play);
+
+      const chips = document.createElement("div");
+      chips.className = "chips";
+      tokenize(stripStress(ipa)).forEach(t => {
+        const ex = exampleFor(t);
+        const c = document.createElement("button");
+        c.type = "button"; c.className = "chip";
+        c.textContent = t;
+        if (ex) { const s = document.createElement("small"); s.textContent = ex; c.appendChild(s); }
+        c.addEventListener("click", () => { if (ex) say(ex, 0.75); });
+        chips.appendChild(c);
+      });
+
+      card.appendChild(line);
+      card.appendChild(chips);
+      if (known && e.gb !== e.us) {
+        const other = document.createElement("div");
+        other.className = "hintline";
+        other.innerHTML = '另一個口音：<span class="ipa">/' + (accent === "us" ? e.gb : e.us) + "/</span>（" + (accent === "us" ? "英式 RP" : "美式 GA") + "）";
+        card.appendChild(other);
+      }
+      host.appendChild(card);
+    });
+  }
+  function exampleFor(sym) {
+    const hit = allCells().filter(i => i[0] === sym)[0];
+    return hit ? hit[1] : null;
+  }
+  $("#lookGo").addEventListener("click", () => analyse($("#lookInput").value));
+  $("#lookInput").addEventListener("keydown", e => { if (e.key === "Enter") analyse($("#lookInput").value); });
+
+  /* ============ mode: listen ============ */
+  let listenQ = null;
+  function newListen() {
+    const e = pick(ENTRIES);
+    const correct = ipaOf(e);
+    const used = [correct];
+    const opts = [correct];
+    for (let i = 0; i < 3; i++) { const d = makeDistractor(correct, used); if (d) { used.push(d); opts.push(d); } }
+    listenQ = { word: e.w };
+    $("#listenFb").textContent = ""; $("#listenFb").className = "feedback";
+    $("#listenNext").hidden = true;
+    $("#listenHint").textContent = "按空白鍵可重播，按 1–4 選答案";
+    renderOptions($("#listenOpts"), shuffle(opts), o => "/" + o + "/", o => o === correct, ok => {
+      mark(ok);
+      const fb = $("#listenFb");
+      fb.className = "feedback " + (ok ? "good" : "bad");
+      fb.innerHTML = (ok ? "✓ 答對了 — " : "✗ 正確是 ") + '<span class="ipa"><b>/' + correct + "/</b></span> <span style=\"color:var(--muted)\">" + e.w + "</span>";
+      $("#listenNext").hidden = false;
+      $("#listenNext").focus();
+    });
+    if (!say(e.w)) $("#listenHint").textContent = "（無語音）這個字是：" + e.w;
+  }
+  $("#listenPlay").addEventListener("click", () => { if (listenQ) say(listenQ.word); });
+  $("#listenNext").addEventListener("click", newListen);
+
+  /* ============ mode: pairs ============ */
+  const PAIR_WORDS = [
+    ["ship","sheep"],["live","leave"],["full","fool"],["cat","cup"],["bad","bed"],["hat","hut"],
+    ["work","walk"],["cot","coat"],["thin","sin"],["three","free"],["think","sink"],["vine","wine"],
+    ["very","berry"],["light","right"],["glass","grass"],["sheep","cheap"],["chair","share"],
+    ["cheap","jeep"],["bag","back"],["cold","gold"],["sun","sung"],["thin","thing"],["ran","rang"],
+    ["goat","coat"],["caught","court"],["hot","hat"],["pot","pet"]
+  ];
+  function contrastLabel(a, b) {
+    const ta = tokenize(stripStress(a)), tb = tokenize(stripStress(b));
+    if (ta.length === tb.length) {
+      for (let i = 0; i < ta.length; i++) if (ta[i] !== tb[i]) return "/" + ta[i] + "/ 對 /" + tb[i] + "/";
+    }
+    return "兩個字只差一個音素";
+  }
+  let pairQ = null;
+  function newPairs() {
+    let p = pick(PAIR_WORDS);
+    const ea = DICT[p[0]], eb = DICT[p[1]];
+    if (!ea || !eb) { newPairs(); return; }
+    const target = Math.random() < 0.5 ? ea : eb;
+    pairQ = { word: target.w };
+    $("#pairsFb").textContent = ""; $("#pairsFb").className = "feedback";
+    $("#pairsNext").hidden = true;
+    $("#pairsHint").textContent = "對比：" + contrastLabel(ipaOf(ea), ipaOf(eb));
+    renderOptions($("#pairsOpts"), shuffle([ea, eb]), o => o.w + "  /" + ipaOf(o) + "/", o => o.w === target.w, ok => {
+      mark(ok);
+      const fb = $("#pairsFb");
+      fb.className = "feedback " + (ok ? "good" : "bad");
+      fb.innerHTML = (ok ? "✓ 是 " : "✗ 聽到的是 ") + "<b>" + target.w + '</b> <span class="ipa">/' + ipaOf(target) + "/</span>";
+      $("#pairsNext").hidden = false;
+      $("#pairsNext").focus();
+    });
+    if (!say(target.w, 0.8)) $("#pairsHint").textContent = "（無語音）這個字是：" + target.w;
+  }
+  $("#pairsPlay").addEventListener("click", () => { if (pairQ) say(pairQ.word, 0.8); });
+  $("#pairsNext").addEventListener("click", newPairs);
+
+  /* ============ accent switch ============ */
+  function setAccent(a) {
+    if (accent === a) return;
+    accent = a;
+    try { localStorage.setItem("soundlab.accent", a); } catch (e) {}
+    $("#accGB").setAttribute("aria-pressed", String(a === "gb"));
+    $("#accUS").setAttribute("aria-pressed", String(a === "us"));
+    paintChart();
+    paintKeyboard();
+    if (buildQ) newBuild();
+    if (listenQ) newListen();
+    if (pairQ) newPairs();
+    if ($("#lookResult").children.length) analyse($("#lookInput").value);
+  }
+  $("#accGB").addEventListener("click", () => setAccent("gb"));
+  $("#accUS").addEventListener("click", () => setAccent("us"));
+  $("#accGB").setAttribute("aria-pressed", String(accent === "gb"));
+  $("#accUS").setAttribute("aria-pressed", String(accent === "us"));
+
+  /* ============ tabs ============ */
+  const MODES = ["chart", "build", "look", "listen", "pairs"];
+  let current = "chart";
+  function openMode(m) {
+    current = m;
+    MODES.forEach(x => {
+      $("#panel-" + x).hidden = (x !== m);
+      $("#tab-" + x).setAttribute("aria-selected", String(x === m));
+    });
+    try { if (location.hash.slice(1) !== m) history.replaceState(null, "", "#" + m); } catch (e) {}
+    if (m === "build" && !buildQ) newBuild();
+    if (m === "listen" && !listenQ) newListen();
+    if (m === "pairs" && !pairQ) newPairs();
+    if (m === "look") $("#lookInput").focus();
+  }
+  document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => openMode(b.dataset.mode)));
+
+  document.addEventListener("keydown", e => {
+    if (e.target && /input|textarea/i.test(e.target.tagName)) return;
+    if (e.code === "Space") {
+      if (current === "listen" && listenQ) { e.preventDefault(); say(listenQ.word); }
+      else if (current === "pairs" && pairQ) { e.preventDefault(); say(pairQ.word, 0.8); }
+      else if (current === "build" && buildQ) { e.preventDefault(); say(buildQ.word); }
+      return;
+    }
+    if (/^[1-4]$/.test(e.key)) {
+      const host = current === "listen" ? $("#listenOpts") : current === "pairs" ? $("#pairsOpts") : null;
+      if (host) { const b = host.children[Number(e.key) - 1]; if (b && !b.disabled) b.click(); }
+      return;
+    }
+    if (e.key === "Enter") {
+      const nxt = current === "listen" ? $("#listenNext") : current === "pairs" ? $("#pairsNext") : null;
+      if (nxt && !nxt.hidden) nxt.click();
+      else if (current === "build") $("#buildCheck").click();
+    }
+  });
+
+  paintChart();
+  paintKeyboard();
+  const start = MODES.indexOf(location.hash.slice(1)) >= 0 ? location.hash.slice(1) : "chart";
+  openMode(start);
+
+  // sample so the lookup panel is never an empty shell
+  $("#lookInput").value = "comfortable";
+  analyse("comfortable");
+})();
+</script>
+</body>
+</html>
