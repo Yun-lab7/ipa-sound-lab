@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Practise the 44 phonemes of English in Cambridge Dictionary notation: ear training on single sounds, real recordings, animated mouth shapes, dictation and word lookup.">
+<meta name="description" content="Practise the 44 phonemes of English in Cambridge Dictionary notation: ear training on single sounds and in words, real recordings, animated mouth shapes, dictation and word lookup.">
 <style>
   html { color-scheme: light; }
   :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -262,6 +262,10 @@
     <h2>Hear one sound · which phoneme was that?</h2>
     <div class="earrow">
       <select id="earSet" aria-label="Which sounds to practise"></select>
+      <div class="seg" id="earCtx" role="group" aria-label="How the sound is played">
+        <button type="button" data-c="alone" aria-pressed="true">On its own</button>
+        <button type="button" data-c="word" aria-pressed="false">In a word</button>
+      </div>
       <div class="seg" id="earChoices" role="group" aria-label="Number of choices">
         <button type="button" data-n="2" aria-pressed="false">2</button>
         <button type="button" data-n="4" aria-pressed="true">4</button>
@@ -281,7 +285,7 @@
     </div>
     <div id="earStats"></div>
     <div class="row"><div class="spacer"></div><button class="btn" id="earReset" type="button">Clear my sound scores</button></div>
-    <p class="hintline">Every sound here is a real recording played on its own, with no word around it. One speaker per sound, so this trains the sound, not a voice.</p>
+    <p class="hintline"><b>On its own</b> plays a real recording of the single sound, with no word around it — one speaker per sound. <b>In a word</b> plays a short word spoken by your browser, and the word never contains any of the other choices, so only one answer fits. Nonsense syllables such as <i>ba da ga</i> are not used because speech synthesis cannot be trusted to read spellings like <i>thah</i> or <i>zhah</i>.</p>
   </section>
 
   <!-- DICTATION -->
@@ -1575,7 +1579,29 @@
     { id: "g14", name: "p b t d k ɡ — voiced or not", list: ["p", "b", "t", "d", "k", "ɡ"] }
   ];
 
-  const ears = { set: "vowels", choices: 4, target: null, answered: false, stats: {} };
+  // Which words contain which sounds, for the "in a word" test. Rebuilt when the
+  // accent changes, because the transcriptions change with it.
+  let WORDIDX = null;
+  function buildWordIndex() {
+    WORDIDX = {};
+    ENTRIES.forEach(e => {
+      const toks = tokenize(stripMarks(ipaOf(e)));
+      const has = {};
+      toks.forEach(t => { has[t] = true; });
+      const rec = { w: e.w, ipa: ipaOf(e), has: has, first: toks[0] };
+      Object.keys(has).forEach(t => { (WORDIDX[t] = WORDIDX[t] || []).push(rec); });
+    });
+  }
+  // A fair word holds the answer and none of the other choices, so only one option fits.
+  function wordFor(target, opts) {
+    if (!WORDIDX) buildWordIndex();
+    const fair = (WORDIDX[target] || []).filter(r => opts.every(o => o === target || !r.has[o]));
+    if (!fair.length) return null;
+    const starts = fair.filter(r => r.first === target);
+    return pick(starts.length ? starts : fair);
+  }
+
+  const ears = { set: "vowels", choices: 4, ctx: "alone", target: null, answered: false, stats: {} };
   try {
     const raw = localStorage.getItem("soundlab.ears.v1");
     if (raw) { const s = JSON.parse(raw); if (s && typeof s === "object") ears.stats = s; }
@@ -1598,29 +1624,48 @@
   }
   function earActiveList() {
     const set = EAR_SETS.filter(s => s.id === ears.set)[0] || EAR_SETS[0];
+    let list = set.list;
     if (set.id === "weak") {
       const w = weakList(6);
-      return w.length >= 2 ? w : EAR_VOWELS;
+      list = w.length >= 2 ? w : EAR_VOWELS;
     }
-    return set.list;
+    if (ears.ctx === "word") {
+      if (!WORDIDX) buildWordIndex();
+      const usable = list.filter(s => (WORDIDX[s] || []).length);
+      if (usable.length >= 2) list = usable;
+    }
+    return list;
   }
 
   function newEar() {
     const list = earActiveList();
-    const target = pick(list);
-    const n = Math.max(2, Math.min(ears.choices, list.length));
-    // Fill the other options with the sounds most easily confused with the target.
-    const near = (CONFUSE[target] || []).filter(s => list.indexOf(s) >= 0 && s !== target);
-    const rest = shuffle(list.filter(s => s !== target && near.indexOf(s) < 0));
-    const opts = shuffle([target].concat(shuffle(near).concat(rest).slice(0, n - 1)));
+    const build = n => {
+      const t = pick(list);
+      const size = Math.max(2, Math.min(n, list.length));
+      // Fill the other options with the sounds most easily confused with the target.
+      const near = (CONFUSE[t] || []).filter(s => list.indexOf(s) >= 0 && s !== t);
+      const rest = shuffle(list.filter(s => s !== t && near.indexOf(s) < 0));
+      return { t: t, opts: shuffle([t].concat(shuffle(near).concat(rest).slice(0, size - 1))) };
+    };
+    let cand = build(ears.choices), word = null;
+    if (ears.ctx === "word") {
+      for (let i = 0; i < 16 && !word; i++) { cand = build(ears.choices); word = wordFor(cand.t, cand.opts); }
+      for (let i = 0; i < 8 && !word; i++) { cand = build(2); word = wordFor(cand.t, cand.opts); }
+    }
+    const target = cand.t, opts = cand.opts;
     ears.target = target;
     ears.answered = false;
     ears.picked = null;
+    ears.word = word;
     $("#earFb").textContent = "";
     $("#earFb").className = "feedback";
     $("#earNext").hidden = true;
     $("#earCompare").hidden = true;
-    $("#earHint").textContent = "Space plays it again · press 1–" + opts.length + " to answer";
+    $("#earHint").textContent = ears.ctx === "word"
+      ? (ears.word
+          ? "Which of these sounds is in the word? · space plays it again · press 1–" + opts.length
+          : "No word fits these choices, so this one plays on its own · press 1–" + opts.length)
+      : "Space plays it again · press 1–" + opts.length + " to answer";
 
     const host = $("#earOpts");
     host.innerHTML = "";
@@ -1640,7 +1685,12 @@
       b.addEventListener("click", () => answerEar(sym, b, host, opts));
       host.appendChild(b);
     });
-    playPhoneme(target);
+    earPlay();
+  }
+  function earPlay() {
+    if (!ears.target) return;
+    if (ears.ctx === "word" && ears.word) say(ears.word.w, 0.8);
+    else playPhoneme(ears.target);
   }
   function answerEar(sym, btn, host, opts) {
     if (ears.answered) return;
@@ -1662,11 +1712,12 @@
     const fb = $("#earFb");
     fb.className = "feedback " + (right ? "good" : "bad");
     const sc = earScore(ears.target);
+    const shown = (ears.ctx === "word" && ears.word) ? ears.word.w : (SOUND[ears.target] ? SOUND[ears.target].ex[0] : "");
+    const shownIpa = (ears.ctx === "word" && ears.word) ? ' <span class="ipa">/' + ears.word.ipa + "/</span>" : "";
     fb.innerHTML = (right ? "✓ Yes — " : "✗ It was ")
-      + '<span class="ipa"><b>/' + ears.target + "/</b></span> as in <b>"
-      + (SOUND[ears.target] ? SOUND[ears.target].ex[0] : "") + "</b>"
+      + '<span class="ipa"><b>/' + ears.target + "/</b></span> as in <b>" + shown + "</b>" + shownIpa
       + (sc ? ' <span style="color:var(--muted)">· you get this one right ' + sc.pct + "% of the time</span>" : "");
-    $("#earCompare").hidden = right;
+    $("#earCompare").hidden = right || !AUDIO[ears.picked] || !AUDIO[ears.target];
     $("#earNext").hidden = false;
     $("#earNext").focus();
     paintEarStats();
@@ -1709,7 +1760,15 @@
         newEar();
       });
     });
-    $("#earPlay").addEventListener("click", () => { if (ears.target) playPhoneme(ears.target); });
+    $("#earPlay").addEventListener("click", earPlay);
+    document.querySelectorAll("#earCtx button").forEach(b => {
+      b.addEventListener("click", () => {
+        ears.ctx = b.dataset.c;
+        document.querySelectorAll("#earCtx button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+        $("#earPlay").textContent = ears.ctx === "word" ? "▶ Play the word" : "▶ Play the sound";
+        newEar();
+      });
+    });
     $("#earNext").addEventListener("click", newEar);
     $("#earCompare").addEventListener("click", compareEar);
     $("#earReset").addEventListener("click", () => {
@@ -1729,8 +1788,10 @@
     $("#accGB").setAttribute("aria-pressed", String(a === "gb"));
     $("#accUS").setAttribute("aria-pressed", String(a === "us"));
     $("#soundModal").hidden = true;
+    buildWordIndex();
     paintChart();
     paintKeyboard();
+    if (ears.target) newEar();
     if (buildQ) newBuild();
     if (listenQ) newListen();
     if (pairQ) newPairs();
@@ -1766,7 +1827,7 @@
       if (current === "listen" && listenQ) { e.preventDefault(); say(listenQ.word); }
       else if (current === "pairs" && pairQ) { e.preventDefault(); say(pairQ.word, 0.8); }
       else if (current === "build" && buildQ) { e.preventDefault(); say(buildQ.word); }
-      else if (current === "ears" && ears.target) { e.preventDefault(); playPhoneme(ears.target); }
+      else if (current === "ears" && ears.target) { e.preventDefault(); earPlay(); }
       return;
     }
     if (/^[1-6]$/.test(e.key)) {
@@ -1783,6 +1844,7 @@
 
   paintChart();
   paintKeyboard();
+  buildWordIndex();
   earControls();
   paintEarStats();
   openMode(MODES.indexOf(location.hash.slice(1)) >= 0 ? location.hash.slice(1) : "chart");

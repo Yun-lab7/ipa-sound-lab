@@ -142,22 +142,6 @@ if (!/while \(opts\.length < 4/.test(src)) note("quiz", "no fallback to top the 
   if (pool.length < 20) note("dictation/" + acc, "only " + pool.length + " words short enough");
 });
 
-/* ---- report ---- */
-const groups = {};
-fail.forEach(f => { const g = f.split(" | ")[0]; (groups[g] = groups[g] || []).push(f.split(" | ")[1]); });
-if (!fail.length) {
-  console.log("All checks passed. " + RAW.length + " dictionary entries, " + PAIRS.length + " minimal pairs.");
-} else {
-  console.log(fail.length + " problems:\n");
-  Object.keys(groups).sort().forEach(g => {
-    console.log("[" + g + "] " + groups[g].length);
-    groups[g].slice(0, 40).forEach(m => console.log("   " + m));
-    if (groups[g].length > 40) console.log("   ... and " + (groups[g].length - 40) + " more");
-    console.log("");
-  });
-  process.exitCode = 1;
-}
-
 /* ---- 8. ear training: no two options may share one recording ---- */
 (function () {
   const audioMeta = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "audio", "meta.json"), "utf8"));
@@ -189,4 +173,63 @@ if (!fail.length) {
   });
 })();
 
-if (!fail.length) console.log("Ear training: pool and sets check out too.");
+
+/* ---- 9. "in a word": every sound in every set needs a word that holds it and
+       none of the other sounds of that set, in both accents ---- */
+(function () {
+  const audioMeta = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "audio", "meta.json"), "utf8"));
+  const setsSrc = grab("EAR_SETS", /const EAR_SETS = \[([\s\S]*?)\n  \];/);
+  if (!setsSrc) return;
+  const listed = [...setsSrc.matchAll(/list: \[([^\]]*)\]/g)].map(m => JSON.parse("[" + m[1] + "]"));
+  const diph = ["eɪ", "aɪ", "ɔɪ", "əʊ", "oʊ", "aʊ", "ɪə", "eə", "ʊə"];
+  const VOWELS = "iː ɪ e æ ʌ ɑː ɒ ɔː ʊ uː ɜː ə".split(" ");
+  const byFile = {}, pool = [];
+  Object.keys(audioMeta).forEach(sym => {
+    if (diph.indexOf(sym) >= 0) return;
+    if (byFile[audioMeta[sym].f]) return;
+    byFile[audioMeta[sym].f] = sym;
+    pool.push(sym);
+  });
+  const allSets = listed
+    .concat([pool.filter(s => VOWELS.indexOf(s) >= 0)])
+    .concat([pool.filter(s => VOWELS.indexOf(s) < 0)]);
+
+  ["gb", "us"].forEach(acc => {
+    const words = Object.values(DICT).map(e => {
+      const has = {};
+      tokenize(stripMarks(ipaOf(e, acc))).forEach(t => { has[t] = true; });
+      return { w: e.w, has: has };
+    });
+    allSets.forEach(set => {
+      const usable = set.filter(s2 => words.some(r => r.has[s2]));
+      if (usable.length < 2) return;
+      usable.forEach(target => {
+        const near = (CONFUSE[target] || []).filter(s2 => usable.indexOf(s2) >= 0 && s2 !== target);
+        const others = near.concat(usable.filter(s2 => s2 !== target && near.indexOf(s2) < 0));
+        for (const size of [6, 4, 2]) {
+          const opts = [target].concat(others.slice(0, Math.max(1, Math.min(size, usable.length) - 1)));
+          const fair = words.filter(r => r.has[target] && opts.every(o => o === target || !r.has[o]));
+          if (!fair.length && size === 2) note("ears-word/" + acc, target + " has no fair word even with one other choice, within [" + usable.join(" ") + "]");
+        }
+      });
+    });
+  });
+})();
+
+if (!fail.length) console.log("Ear training: pool, sets and word contexts all check out.");
+
+/* ---- report ---- */
+const groups = {};
+fail.forEach(f => { const g = f.split(" | ")[0]; (groups[g] = groups[g] || []).push(f.split(" | ")[1]); });
+if (!fail.length) {
+  console.log("All checks passed. " + RAW.length + " dictionary entries, " + PAIRS.length + " minimal pairs.");
+} else {
+  console.log(fail.length + " problems:\n");
+  Object.keys(groups).sort().forEach(g => {
+    console.log("[" + g + "] " + groups[g].length);
+    groups[g].slice(0, 40).forEach(m => console.log("   " + m));
+    if (groups[g].length > 40) console.log("   ... and " + (groups[g].length - 40) + " more");
+    console.log("");
+  });
+  process.exitCode = 1;
+}
