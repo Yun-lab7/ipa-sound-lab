@@ -183,6 +183,7 @@
   .slot.filled { border-style: solid; border-color: var(--accent); }
   .slot .tok.ok { color: var(--ok); }
   .slot .tok.no { color: var(--err); text-decoration: underline wavy; }
+  .slot .tok.gap { color: var(--ochre); opacity: .8; }
   .keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 6px; }
   .key-btn { font-family: var(--font-ipa); font-size: 19px; padding: 10px 4px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink); cursor: pointer; min-width: 0; }
   .key-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
@@ -304,6 +305,7 @@
     <div class="row">
       <button class="btn primary" id="buildCheck" type="button">Check</button>
       <button class="btn" id="buildHint" type="button">Reveal next sound</button>
+      <button class="btn" id="buildKeep" type="button" hidden>Keep the correct start</button>
       <div class="spacer"></div>
       <button class="btn" id="buildSkip" type="button">New word →</button>
     </div>
@@ -593,6 +595,7 @@
     return AUDIO[sym] ? [sym] : null;
   }
   function playPhoneme(sym, fallbackWord) {
+    if (quiet) return true;
     const back = () => { if (fallbackWord) say(fallbackWord, 0.75); };
     const parts = partsOf(sym);
     if (!parts) { back(); return false; }
@@ -1111,6 +1114,9 @@
     return null;
   }
 
+  // Rebuilding a question must not make a noise: changing a setting is not a request
+  // to hear something. Suppressed calls report success so callers do not fall back.
+  let quiet = false;
   let voices = [];
   function loadVoices() { if ("speechSynthesis" in window) voices = speechSynthesis.getVoices() || []; }
   if ("speechSynthesis" in window) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
@@ -1120,6 +1126,7 @@
     return voices.filter(v => want.test(v.lang))[0] || voices.filter(v => /^en/i.test(v.lang))[0] || null;
   }
   function say(text, rate) {
+    if (quiet) return true;
     // Inside the Android app the WebView often has no voice of its own, so the
     // device's own speech is offered through a bridge.
     try {
@@ -1361,6 +1368,34 @@
       host.appendChild(b);
     });
   }
+  // Longest common subsequence, so a missing sound shifts nothing after it.
+  function alignTokens(typed, want) {
+    const n = typed.length, m = want.length;
+    const L = [];
+    for (let i = 0; i <= n; i++) L.push(new Array(m + 1).fill(0));
+    for (let i = n - 1; i >= 0; i--) {
+      for (let j = m - 1; j >= 0; j--) {
+        L[i][j] = typed[i] === want[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+      }
+    }
+    const out = [];
+    let i = 0, j = 0;
+    while (i < n && j < m) {
+      if (typed[i] === want[j]) { out.push({ t: typed[i], s: "ok" }); i++; j++; }
+      else if (L[i + 1][j] >= L[i][j + 1]) { out.push({ t: typed[i], s: "bad" }); i++; }
+      else { out.push({ t: want[j], s: "miss" }); j++; }
+    }
+    while (i < n) out.push({ t: typed[i++], s: "bad" });
+    while (j < m) out.push({ t: want[j++], s: "miss" });
+    return out;
+  }
+  // How many sounds from the start are already right, so the rest can be dropped.
+  function correctPrefix(typed, want) {
+    let k = 0;
+    while (k < typed.length && k < want.length && typed[k] === want[k]) k++;
+    return k;
+  }
+
   function paintBuild() {
     const slot = $("#buildSlot");
     slot.innerHTML = "";
@@ -1368,10 +1403,14 @@
     slot.classList.add("filled");
     const want = tokenize(buildQ.ipa);
     slot.appendChild(document.createTextNode("/"));
-    buildQ.typed.forEach((t, i) => {
+    const parts = buildQ.checked
+      ? alignTokens(buildQ.typed, want)
+      : buildQ.typed.map(t => ({ t: t, s: "" }));
+    parts.forEach(part => {
       const s = document.createElement("span");
-      s.className = "tok" + (buildQ.checked ? (want[i] === t ? " ok" : " no") : "");
-      s.textContent = t;
+      s.className = "tok" + (part.s === "ok" ? " ok" : part.s === "bad" ? " no" : part.s === "miss" ? " gap" : "");
+      s.textContent = part.s === "miss" ? "◦" : part.t;
+      if (part.s === "miss") s.title = "a sound is missing here";
       slot.appendChild(s);
     });
     slot.appendChild(document.createTextNode("/"));
@@ -1385,6 +1424,7 @@
     w.style.color = "var(--muted)";
     w.style.fontSize = "20px";
     $("#buildFb").textContent = ""; $("#buildFb").className = "feedback";
+    $("#buildKeep").hidden = true;
     paintBuild();
     say(e.w);
   }
@@ -1399,6 +1439,19 @@
   $("#buildSlow").addEventListener("click", () => { if (buildQ) say(buildQ.word, 0.55); });
   $("#buildReveal").addEventListener("click", revealWord);
   $("#buildSkip").addEventListener("click", newBuild);
+  $("#buildKeep").addEventListener("click", () => {
+    if (!buildQ || buildQ.done) return;
+    const want = tokenize(buildQ.ipa);
+    const k = correctPrefix(buildQ.typed, want);
+    buildQ.typed = buildQ.typed.slice(0, k);
+    buildQ.checked = false;
+    $("#buildKeep").hidden = true;
+    paintBuild();
+    const fb = $("#buildFb");
+    fb.className = "feedback";
+    fb.textContent = k ? "Kept the first " + k + " sound" + (k > 1 ? "s" : "") + " — carry on from there."
+      : "Nothing at the start was right yet, so the box is empty again.";
+  });
   $("#buildHint").addEventListener("click", () => {
     if (!buildQ || buildQ.done) return;
     const want = tokenize(buildQ.ipa);
@@ -1422,8 +1475,8 @@
     fb.className = "feedback " + (ok ? "good" : "bad");
     fb.innerHTML = ok
       ? "✓ Correct — <b>" + buildQ.word + '</b> <span class="ipa">/' + buildQ.ipa + "/</span>"
-      : 'Not yet — the wavy symbols are wrong. It is <span class="ipa">/' + buildQ.ipa + "/</span>";
-    if (!ok) revealWord();
+      : 'Not yet — wavy red is wrong, ◦ marks a missing sound, green is right. It is <span class="ipa">/' + buildQ.ipa + "/</span>";
+    if (!ok) { revealWord(); $("#buildKeep").hidden = false; }
     if (ok) setTimeout(newBuild, 1100);
   });
 
@@ -1462,8 +1515,9 @@
         c.className = "chip" + (known2 ? "" : " flat");
         c.textContent = t;
         if (known2) {
-          c.title = SOUND[t].n;
-          c.addEventListener("click", () => openSound(t));
+          c.title = "Play /" + t + "/ and show how it is made";
+          // A symbol you can see but not hear is not much use: play it, then explain it.
+          c.addEventListener("click", () => { playPhoneme(t, SOUND[t].ex[0]); openSound(t); });
         }
         chips.appendChild(c);
       });
@@ -1810,10 +1864,13 @@
     buildWordIndex();
     paintChart();
     paintKeyboard();
-    if (ears.target) newEar();
-    if (buildQ) newBuild();
-    if (listenQ) newListen();
-    if (pairQ) newPairs();
+    quiet = true;
+    try {
+      if (ears.target) newEar();
+      if (buildQ) newBuild();
+      if (listenQ) newListen();
+      if (pairQ) newPairs();
+    } finally { quiet = false; }
     if ($("#lookResult").children.length) analyse($("#lookInput").value);
   }
   $("#accGB").addEventListener("click", () => setAccent("gb"));
