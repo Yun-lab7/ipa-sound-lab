@@ -1497,7 +1497,7 @@
   function newBuild() {
     const pool = ENTRIES.filter(e => stripMarks(ipaOf(e)).length <= 9);
     const e = pick(pool);
-    buildQ = { word: e.w, ipa: stripMarks(ipaOf(e)), typed: [], checked: false, done: false };
+    buildQ = { word: e.w, ipa: stripMarks(ipaOf(e)), typed: [], checked: false, done: false, helped: false };
     const w = $("#buildWord");
     w.textContent = "Listen first — reveal the spelling only if you need it";
     w.style.color = "var(--muted)";
@@ -1509,6 +1509,7 @@
   }
   function revealWord() {
     if (!buildQ) return;
+    buildQ.helped = true;
     const w = $("#buildWord");
     w.textContent = buildQ.word;
     w.style.color = "var(--ink)";
@@ -1551,6 +1552,7 @@
   });
   $("#buildHint").addEventListener("click", () => {
     if (!buildQ || buildQ.done) return;
+    buildQ.helped = true;
     const want = tokenize(buildQ.ipa);
     let i = 0;
     while (i < buildQ.typed.length && i < want.length && buildQ.typed[i] === want[i]) i++;
@@ -1566,12 +1568,15 @@
     const ok = buildQ.typed.join("") === buildQ.ipa;
     buildQ.checked = true;
     paintBuild();
-    mark(ok);
+    // Revealing the answer and then pressing Check is not a win, so a word done
+    // with help is simply not scored, either way.
+    if (!buildQ.helped) mark(ok);
     if (ok) buildQ.done = true;
     const fb = $("#buildFb");
     fb.className = "feedback " + (ok ? "good" : "bad");
     fb.innerHTML = ok
       ? "✓ Correct — <b>" + buildQ.word + '</b> <span class="ipa">/' + buildQ.ipa + "/</span>"
+        + (buildQ.helped ? ' <span style="color:var(--muted)">· not counted, you used help</span>' : "")
       : 'Not yet — wavy red is wrong, ◦ marks a missing sound, green is right. It is <span class="ipa">/' + buildQ.ipa + "/</span>";
     if (!ok) { revealWord(); $("#buildKeep").hidden = false; }
     if (ok) setTimeout(newBuild, 1100);
