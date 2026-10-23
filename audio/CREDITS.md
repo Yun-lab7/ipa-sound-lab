@@ -1,8 +1,8 @@
 # Audio credits
 
 Each recording below is one IPA sound spoken by a person. The files come from
-Wikimedia Commons and are **not** my work. They are included unchanged. Each one keeps
-its own licence; the page code is MIT, the audio is not.
+Wikimedia Commons and are **not** original to this project. They are included unchanged, and each
+keeps its own licence: the page code is MIT, the audio is not.
 
 | File | Commons page | Author | Licence |
 | --- | --- | --- | --- |

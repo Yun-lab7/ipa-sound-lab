@@ -166,8 +166,8 @@ const clean = s => String(s || "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").
   fs.writeFileSync(path.join(dir, "meta.json"), JSON.stringify(meta));
   const credits = "# Audio credits\n\n"
     + "Each recording below is one IPA sound spoken by a person. The files come from\n"
-    + "Wikimedia Commons and are **not** my work. They are included unchanged. Each one keeps\n"
-    + "its own licence; the page code is MIT, the audio is not.\n\n"
+    + "Wikimedia Commons and are **not** original to this project. They are included unchanged, and each\n"
+    + "keeps its own licence: the page code is MIT, the audio is not.\n\n"
     + "| File | Commons page | Author | Licence |\n| --- | --- | --- | --- |\n"
     + rows.map(r => "| `" + r.file + "` | [" + r.title + "](" + r.page + ") | " + r.author
       + " | [" + r.licence + "](" + r.licenceUrl + ") |").join("\n") + "\n";

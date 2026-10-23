@@ -1,7 +1,7 @@
 # How this project was built
 
 An account of the decisions, the tooling and the mistakes behind Sound Lab, written so that
-anyone picking the project up — including me, later — can see why it is shaped the way it is.
+anyone picking the project up later can see why it is shaped the way it is.
 
 ## The shape of it
 
@@ -63,7 +63,7 @@ honesty applies in the ear test, where diphthongs are left out of the single-sou
 they would be identifiable for the wrong reason.
 
 **The recordings travel inside the page.** They were first served as separate files, which worked
-locally and failed for the user — "on its own" played nothing. The audio element reported
+on the development machine and not on another — "on its own" played nothing. The audio element reported
 `readyState 4` and advanced through the file here, so the fault was delivery, not logic. Embedding
 them as `data:` URIs removed every network and policy question at a cost of 1.4 MB, and as a bonus
 the page now runs from a local file with no server. The separate files remain as a fallback source.
@@ -143,7 +143,7 @@ hinged group carrying the lower lip, the lower teeth and the tongue together.
 not an IDL attribute there, so the Front/Side toggle highlighted but never switched; a malformed
 path for the nasal airflow, rejected by the SVG parser on every nasal sound; and dictation comparing
 the answer position by position, so leaving one sound out shifted everything after it and turned a
-correct ending red. The last one came from a user report with a screenshot, and the fix was to align
+correct ending red. The last one showed up in ordinary use, and the fix was to align
 the sequences by longest common subsequence instead.
 
 **Two design faults, found by use rather than by testing:** changing the accent rebuilt every open
