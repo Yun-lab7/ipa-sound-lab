@@ -8,11 +8,18 @@ An IPA practice page for the 44 phonemes of English, in **Cambridge Dictionary n
 
 | Mode | What you do |
 | --- | --- |
-| **Chart** | The phonemic chart in the printed layout: monophthongs in a 4×3 block, diphthongs beside them, consonants in three rows. Tap any cell to hear its example word and open the sound's articulation. |
+| **Chart** | The phonemic chart in the printed layout: monophthongs in a 4×3 block, diphthongs beside them, consonants in three rows. Tap any cell to hear the sound itself and open its articulation. |
+| **Hear one sound** | Ear training on single phonemes, in the spirit of [English Accent Coach](https://www.englishaccentcoach.com/). One recorded sound plays with no word around it; pick it from 2, 4 or 6 choices. Choose all vowels, all consonants, or a confusable set such as *θ s f* or *l r*. A wrong answer offers **Hear both**, which replays your guess and then the right answer. |
 | **Dictation** | Hear a word and spell every sound with the IPA keyboard. Reveal the next sound, show the spelling, or check — wrong symbols are underlined. |
 | **Word lookup** | Type a word or a whole sentence and get a transcription per word, with each symbol tappable. |
 | **Pick the transcription** | Hear a word, choose between four transcriptions that differ by one phoneme. |
 | **Minimal pairs** | ship/sheep, thin/sin, cold/gold — tell apart two words one phoneme apart. |
+
+## Which sounds your ear misses
+
+The ear-training mode keeps a score for every sound, not just a total. Under the question it shows your hardest sounds as bars — the ones you pick wrong most often. The set list has **My weak sounds**, which drills only those. Scores are stored in your browser and can be cleared from the panel.
+
+This is what makes single-sound practice worth doing: a whole-word test hides the problem, because context lets you guess. With one sound and no context there is nothing to guess from.
 
 A **UK / US** switch drives everything: the chart inventory, the dictionary forms, the quiz answers, and the speech-synthesis voice.
 

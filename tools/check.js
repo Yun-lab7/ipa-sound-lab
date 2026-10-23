@@ -157,3 +157,36 @@ if (!fail.length) {
   });
   process.exitCode = 1;
 }
+
+/* ---- 8. ear training: no two options may share one recording ---- */
+(function () {
+  const audioMeta = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "audio", "meta.json"), "utf8"));
+  const diph = ["eɪ", "aɪ", "ɔɪ", "əʊ", "oʊ", "aʊ", "ɪə", "eə", "ʊə"];
+  const poolSrc = grab("EAR_POOL build", /const EAR_POOL = \(function \(\) \{([\s\S]*?)\}\)\(\);/);
+  if (!poolSrc) return;
+  // rebuild the pool the same way the page does
+  const byFile = {}, pool = [];
+  Object.keys(audioMeta).forEach(sym => {
+    if (diph.indexOf(sym) >= 0) return;
+    const f = audioMeta[sym].f;
+    if (byFile[f]) return;
+    byFile[f] = sym; pool.push(sym);
+  });
+  if (pool.length < 20) note("ears", "only " + pool.length + " testable sounds");
+  const files = pool.map(s => audioMeta[s].f);
+  if (new Set(files).size !== files.length) note("ears", "two testable sounds share one recording");
+
+  const setsSrc = grab("EAR_SETS", /const EAR_SETS = \[([\s\S]*?)\n  \];/);
+  const listed = [...setsSrc.matchAll(/list: \[([^\]]*)\]/g)].map(m => JSON.parse("[" + m[1] + "]"));
+  listed.forEach(list => {
+    list.forEach(sym => {
+      if (!audioMeta[sym]) note("ears", "set uses " + sym + ", which has no recording");
+      else if (pool.indexOf(sym) < 0) note("ears", "set uses " + sym + ", which is not in the testable pool");
+    });
+    const fs2 = list.map(s => audioMeta[s] && audioMeta[s].f);
+    if (new Set(fs2).size !== fs2.length) note("ears", "a set has two sounds that share one recording: " + list.join(" "));
+    if (list.length < 2) note("ears", "a set has fewer than two sounds: " + list.join(" "));
+  });
+})();
+
+if (!fail.length) console.log("Ear training: pool and sets check out too.");

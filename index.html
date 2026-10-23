@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Practise the 44 phonemes of English in Cambridge Dictionary notation: real recordings of every sound, animated mouth shapes, dictation, and word lookup.">
+<meta name="description" content="Practise the 44 phonemes of English in Cambridge Dictionary notation: ear training on single sounds, real recordings, animated mouth shapes, dictation and word lookup.">
 <style>
   html { color-scheme: light; }
   :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -203,6 +203,19 @@
   .chip:hover { border-color: var(--accent); background: var(--accent-soft); }
   .chip.flat { cursor: default; color: var(--muted); }
 
+  .earrow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  #earSet { font: inherit; font-size: 15px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); color: var(--ink); max-width: 100%; }
+  .opt.earopt { flex-direction: column; align-items: flex-start; gap: 2px; position: relative; padding-top: 12px; }
+  .opt.earopt .key { position: absolute; top: 8px; right: 10px; }
+  .opt.earopt .ipa { font-size: 26px; font-weight: 700; }
+  .opt.earopt small { font-size: 12px; color: var(--muted); }
+  .earh { font-family: var(--font-display); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+  .bars { display: flex; flex-direction: column; gap: 6px; }
+  .bar { display: grid; grid-template-columns: 46px 1fr 86px; gap: 10px; align-items: center; font-size: 13px; }
+  .bar > span { font-family: var(--font-ipa); font-weight: 700; }
+  .bar i { display: block; height: 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .bar i b { display: block; height: 100%; background: var(--accent); }
+  .bar small { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
   .meter { height: 6px; background: var(--surface-2); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
   .meter > i { display: block; height: 100%; background: var(--accent); width: 0%; transition: width .3s ease; }
 
@@ -229,6 +242,7 @@
     <div class="meter" aria-hidden="true"><i id="meterBar"></i></div>
     <nav class="tabs" role="tablist" aria-label="Practice modes">
       <button role="tab" id="tab-chart" aria-selected="true" data-mode="chart">Chart</button>
+      <button role="tab" id="tab-ears" aria-selected="false" data-mode="ears">Hear one sound</button>
       <button role="tab" id="tab-build" aria-selected="false" data-mode="build">Dictation</button>
       <button role="tab" id="tab-look" aria-selected="false" data-mode="look">Word lookup</button>
       <button role="tab" id="tab-listen" aria-selected="false" data-mode="listen">Pick the transcription</button>
@@ -241,6 +255,33 @@
     <h2 id="chartTitle">Phonemic chart</h2>
     <div id="chartGroups" style="display:flex;flex-direction:column;gap:18px"></div>
     <p class="hintline" id="chartNote"></p>
+  </section>
+
+  <!-- EAR TRAINING -->
+  <section class="card" id="panel-ears" hidden>
+    <h2>Hear one sound · which phoneme was that?</h2>
+    <div class="earrow">
+      <select id="earSet" aria-label="Which sounds to practise"></select>
+      <div class="seg" id="earChoices" role="group" aria-label="Number of choices">
+        <button type="button" data-n="2" aria-pressed="false">2</button>
+        <button type="button" data-n="4" aria-pressed="true">4</button>
+        <button type="button" data-n="6" aria-pressed="false">6</button>
+      </div>
+    </div>
+    <div class="prompt">
+      <button class="btn primary" id="earPlay" type="button">▶ Play the sound</button>
+      <div class="hintline" id="earHint">Space plays it again</div>
+    </div>
+    <div class="options" id="earOpts"></div>
+    <div class="feedback" id="earFb"></div>
+    <div class="row">
+      <button class="btn" id="earCompare" type="button" hidden>▶ Hear both</button>
+      <div class="spacer"></div>
+      <button class="btn" id="earNext" type="button" hidden>Next →</button>
+    </div>
+    <div id="earStats"></div>
+    <div class="row"><div class="spacer"></div><button class="btn" id="earReset" type="button">Clear my sound scores</button></div>
+    <p class="hintline">Every sound here is a real recording played on its own, with no word around it. One speaker per sound, so this trains the sound, not a voice.</p>
   </section>
 
   <!-- DICTATION -->
@@ -1491,6 +1532,194 @@
   $("#pairsNext").addEventListener("click", newPairs);
 
   /* ======================================================================
+     Ear training — one sound at a time.
+     The hard part of listening is not words, it is telling /iː/ from /ɪ/ or
+     /θ/ from /s/ with nothing else to go on. So: play one recorded phoneme,
+     pick it out of a small set, and keep a score for each sound so the
+     weak ones can be drilled on their own.
+     ====================================================================== */
+
+  // Several symbols share one recording (iː/i, uː/u, ɜː/ɝː, ə/ɚ). Only one of
+  // each may appear, or two options would sound exactly the same. Diphthongs are
+  // left out: they are played as two files, which would give the answer away.
+  const EAR_POOL = (function () {
+    const byFile = {}, order = [];
+    Object.keys(AUDIO).forEach(sym => {
+      if (DIPH_SEQ[sym]) return;
+      const f = AUDIO[sym].f;
+      if (byFile[f]) return;
+      byFile[f] = sym;
+      order.push(sym);
+    });
+    return order;
+  })();
+  const EAR_VOWELS = EAR_POOL.filter(s => "iː ɪ e æ ʌ ɑː ɒ ɔː ʊ uː ɜː ə".split(" ").indexOf(s) >= 0);
+  const EAR_CONS = EAR_POOL.filter(s => EAR_VOWELS.indexOf(s) < 0);
+  const EAR_SETS = [
+    { id: "vowels", name: "All vowels", list: EAR_VOWELS },
+    { id: "cons", name: "All consonants", list: EAR_CONS },
+    { id: "weak", name: "My weak sounds", list: null },
+    { id: "g1", name: "iː ɪ — sheep, ship", list: ["iː", "ɪ"] },
+    { id: "g2", name: "e æ — bed, bad", list: ["e", "æ"] },
+    { id: "g3", name: "æ ʌ ɑː — bat, but, bath", list: ["æ", "ʌ", "ɑː"] },
+    { id: "g4", name: "ɒ ɔː ʌ — hot, horse, hut", list: ["ɒ", "ɔː", "ʌ"] },
+    { id: "g5", name: "ʊ uː — full, fool", list: ["ʊ", "uː"] },
+    { id: "g6", name: "ɜː ə — bird, about", list: ["ɜː", "ə"] },
+    { id: "g7", name: "θ s f — think, sink, free", list: ["θ", "s", "f"] },
+    { id: "g8", name: "ð z d — this, zoo, do", list: ["ð", "z", "d"] },
+    { id: "g9", name: "ʃ tʃ s — shoe, chew, sue", list: ["ʃ", "tʃ", "s"] },
+    { id: "g10", name: "ʒ dʒ z — measure, jump, zoo", list: ["ʒ", "dʒ", "z"] },
+    { id: "g11", name: "l r — light, right", list: ["l", "r"] },
+    { id: "g12", name: "b v w — bet, vet, wet", list: ["b", "v", "w"] },
+    { id: "g13", name: "m n ŋ — some, sun, sung", list: ["m", "n", "ŋ"] },
+    { id: "g14", name: "p b t d k ɡ — voiced or not", list: ["p", "b", "t", "d", "k", "ɡ"] }
+  ];
+
+  const ears = { set: "vowels", choices: 4, target: null, answered: false, stats: {} };
+  try {
+    const raw = localStorage.getItem("soundlab.ears.v1");
+    if (raw) { const s = JSON.parse(raw); if (s && typeof s === "object") ears.stats = s; }
+  } catch (e) {}
+  function earSave() {
+    try { localStorage.setItem("soundlab.ears.v1", JSON.stringify(ears.stats)); } catch (e) {}
+  }
+  function earScore(sym) {
+    const s = ears.stats[sym];
+    if (!s || !(s[0] + s[1])) return null;
+    return { right: s[0], total: s[0] + s[1], pct: Math.round(s[0] / (s[0] + s[1]) * 100) };
+  }
+  function weakList(n) {
+    return EAR_POOL
+      .map(sym => ({ sym: sym, s: earScore(sym) }))
+      .filter(x => x.s && x.s.total >= 2)
+      .sort((a, b) => a.s.pct - b.s.pct || b.s.total - a.s.total)
+      .slice(0, n || 6)
+      .map(x => x.sym);
+  }
+  function earActiveList() {
+    const set = EAR_SETS.filter(s => s.id === ears.set)[0] || EAR_SETS[0];
+    if (set.id === "weak") {
+      const w = weakList(6);
+      return w.length >= 2 ? w : EAR_VOWELS;
+    }
+    return set.list;
+  }
+
+  function newEar() {
+    const list = earActiveList();
+    const target = pick(list);
+    const n = Math.max(2, Math.min(ears.choices, list.length));
+    // Fill the other options with the sounds most easily confused with the target.
+    const near = (CONFUSE[target] || []).filter(s => list.indexOf(s) >= 0 && s !== target);
+    const rest = shuffle(list.filter(s => s !== target && near.indexOf(s) < 0));
+    const opts = shuffle([target].concat(shuffle(near).concat(rest).slice(0, n - 1)));
+    ears.target = target;
+    ears.answered = false;
+    ears.picked = null;
+    $("#earFb").textContent = "";
+    $("#earFb").className = "feedback";
+    $("#earNext").hidden = true;
+    $("#earCompare").hidden = true;
+    $("#earHint").textContent = "Space plays it again · press 1–" + opts.length + " to answer";
+
+    const host = $("#earOpts");
+    host.innerHTML = "";
+    opts.forEach((sym, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "opt earopt";
+      const k = document.createElement("span");
+      k.className = "key";
+      k.textContent = String(i + 1);
+      const t = document.createElement("span");
+      t.className = "ipa";
+      t.textContent = "/" + sym + "/";
+      const w = document.createElement("small");
+      w.textContent = SOUND[sym] ? SOUND[sym].ex[0] : "";
+      b.appendChild(k); b.appendChild(t); b.appendChild(w);
+      b.addEventListener("click", () => answerEar(sym, b, host, opts));
+      host.appendChild(b);
+    });
+    playPhoneme(target);
+  }
+  function answerEar(sym, btn, host, opts) {
+    if (ears.answered) return;
+    ears.answered = true;
+    ears.picked = sym;
+    const right = sym === ears.target;
+    Array.prototype.forEach.call(host.children, (el, i) => {
+      el.disabled = true;
+      if (opts[i] === ears.target) el.classList.add("right");
+    });
+    if (!right) btn.classList.add("wrong");
+
+    const st = ears.stats[ears.target] || [0, 0];
+    st[right ? 0 : 1]++;
+    ears.stats[ears.target] = st;
+    earSave();
+    mark(right);
+
+    const fb = $("#earFb");
+    fb.className = "feedback " + (right ? "good" : "bad");
+    const sc = earScore(ears.target);
+    fb.innerHTML = (right ? "✓ Yes — " : "✗ It was ")
+      + '<span class="ipa"><b>/' + ears.target + "/</b></span> as in <b>"
+      + (SOUND[ears.target] ? SOUND[ears.target].ex[0] : "") + "</b>"
+      + (sc ? ' <span style="color:var(--muted)">· you get this one right ' + sc.pct + "% of the time</span>" : "");
+    $("#earCompare").hidden = right;
+    $("#earNext").hidden = false;
+    $("#earNext").focus();
+    paintEarStats();
+  }
+  function compareEar() {
+    // Play the wrong guess, then the right answer, so the difference is audible.
+    if (!ears.picked || ears.picked === ears.target) return;
+    const a = AUDIO[ears.picked], b = AUDIO[ears.target];
+    if (!a || !b) return;
+    $("#earFb").innerHTML = 'First <span class="ipa"><b>/' + ears.picked + "/</b></span>, then <span class=\"ipa\"><b>/" + ears.target + "/</b></span>";
+    $("#earFb").className = "feedback";
+    playFiles([a.f, b.f], () => {});
+  }
+  function paintEarStats() {
+    const host = $("#earStats");
+    const rows = EAR_POOL.map(sym => ({ sym: sym, s: earScore(sym) })).filter(x => x.s);
+    if (!rows.length) {
+      host.innerHTML = '<p class="hintline">Your score for each sound will build up here, so you can see which ones your ear misses.</p>';
+      return;
+    }
+    const worst = rows.slice().sort((a, b) => a.s.pct - b.s.pct || b.s.total - a.s.total).slice(0, 8);
+    const tested = rows.length, totalTries = rows.reduce((n, r) => n + r.s.total, 0);
+    host.innerHTML = '<h3 class="earh">Hardest sounds for you'
+      + '<span class="count">' + tested + " sounds tested · " + totalTries + " tries</span></h3>"
+      + '<div class="bars">' + worst.map(r =>
+        '<div class="bar"><span class="ipa">/' + r.sym + "/</span>"
+        + '<i><b style="width:' + r.s.pct + '%"></b></i>'
+        + "<small>" + r.s.pct + "% of " + r.s.total + "</small></div>").join("") + "</div>";
+  }
+
+  function earControls() {
+    const sel = $("#earSet");
+    sel.innerHTML = EAR_SETS.map(s => '<option value="' + s.id + '">' + s.name + "</option>").join("");
+    sel.value = ears.set;
+    sel.addEventListener("change", () => { ears.set = sel.value; newEar(); });
+    document.querySelectorAll("#earChoices button").forEach(b => {
+      b.addEventListener("click", () => {
+        ears.choices = Number(b.dataset.n);
+        document.querySelectorAll("#earChoices button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+        newEar();
+      });
+    });
+    $("#earPlay").addEventListener("click", () => { if (ears.target) playPhoneme(ears.target); });
+    $("#earNext").addEventListener("click", newEar);
+    $("#earCompare").addEventListener("click", compareEar);
+    $("#earReset").addEventListener("click", () => {
+      ears.stats = {};
+      earSave();
+      paintEarStats();
+    });
+  }
+
+  /* ======================================================================
      9. Accent switch, tabs, keyboard
      ====================================================================== */
   function setAccent(a) {
@@ -1512,7 +1741,7 @@
   $("#accGB").setAttribute("aria-pressed", String(accent === "gb"));
   $("#accUS").setAttribute("aria-pressed", String(accent === "us"));
 
-  const MODES = ["chart", "build", "look", "listen", "pairs"];
+  const MODES = ["chart", "ears", "build", "look", "listen", "pairs"];
   let current = "chart";
   function openMode(m) {
     current = m;
@@ -1521,6 +1750,7 @@
       $("#tab-" + x).setAttribute("aria-selected", String(x === m));
     });
     try { if (location.hash.slice(1) !== m) history.replaceState(null, "", "#" + m); } catch (e) {}
+    if (m === "ears" && !ears.target) newEar();
     if (m === "build" && !buildQ) newBuild();
     if (m === "listen" && !listenQ) newListen();
     if (m === "pairs" && !pairQ) newPairs();
@@ -1536,15 +1766,16 @@
       if (current === "listen" && listenQ) { e.preventDefault(); say(listenQ.word); }
       else if (current === "pairs" && pairQ) { e.preventDefault(); say(pairQ.word, 0.8); }
       else if (current === "build" && buildQ) { e.preventDefault(); say(buildQ.word); }
+      else if (current === "ears" && ears.target) { e.preventDefault(); playPhoneme(ears.target); }
       return;
     }
-    if (/^[1-4]$/.test(e.key)) {
-      const host = current === "listen" ? $("#listenOpts") : current === "pairs" ? $("#pairsOpts") : null;
+    if (/^[1-6]$/.test(e.key)) {
+      const host = current === "listen" ? $("#listenOpts") : current === "pairs" ? $("#pairsOpts") : current === "ears" ? $("#earOpts") : null;
       if (host) { const b = host.children[Number(e.key) - 1]; if (b && !b.disabled) b.click(); }
       return;
     }
     if (e.key === "Enter") {
-      const nxt = current === "listen" ? $("#listenNext") : current === "pairs" ? $("#pairsNext") : null;
+      const nxt = current === "listen" ? $("#listenNext") : current === "pairs" ? $("#pairsNext") : current === "ears" ? $("#earNext") : null;
       if (nxt && !nxt.hidden) nxt.click();
       else if (current === "build") $("#buildCheck").click();
     }
@@ -1552,6 +1783,8 @@
 
   paintChart();
   paintKeyboard();
+  earControls();
+  paintEarStats();
   openMode(MODES.indexOf(location.hash.slice(1)) >= 0 ? location.hash.slice(1) : "chart");
 
   // The lookup panel opens on a worked example rather than an empty field.
