@@ -2,7 +2,7 @@
 
 An IPA practice page for the 44 phonemes of English, in **Cambridge Dictionary notation**. One static HTML file, no dependencies, no build step, no backend.
 
-**Live site**: once GitHub Pages is on, `https://<your-account>.github.io/ipa-sound-lab/`
+**Live site**: <https://jukerupup.github.io/ipa-sound-lab/>
 
 ## What it does
 
