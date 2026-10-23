@@ -1764,7 +1764,9 @@
   // A fair word holds the answer and none of the other choices, so only one option fits.
   function wordFor(target, opts) {
     if (!WORDIDX) buildWordIndex();
-    const fair = (WORDIDX[target] || []).filter(r => opts.every(o => o === target || !r.has[o]));
+    const labels = opts.map(o => SOUND[o] ? SOUND[o].ex[0] : null);
+    const fair = (WORDIDX[target] || []).filter(r =>
+      opts.every(o => o === target || !r.has[o]) && labels.indexOf(r.w) < 0);
     if (!fair.length) return null;
     const starts = fair.filter(r => r.first === target);
     return pick(starts.length ? starts : fair);
@@ -1859,12 +1861,13 @@
   function earPlay() {
     if (!ears.target) return;
     if (ears.ctx === "word" && ears.word) { say(ears.word.w, 0.8); return; }
-    const word = SOUND[ears.target] ? SOUND[ears.target].ex[0] : null;
-    playPhoneme(ears.target, word);
+    // No spoken fallback here: the example word is printed under the correct answer,
+    // so speaking it would give the answer away.
+    playPhoneme(ears.target);
     setTimeout(() => {
       if (!audioBroken) return;
       const n = $("#earNote");
-      if (n) n.textContent = "Your browser will not play the recordings, so the example word is spoken instead. The answer is still the sound, not the word.";
+      if (n) n.textContent = "Your browser will not play the recordings, so this round cannot be scored. Try “In a word” instead.";
     }, 400);
   }
   function answerEar(sym, btn, host, opts) {
@@ -1882,7 +1885,9 @@
     st[right ? 0 : 1]++;
     ears.stats[ears.target] = st;
     earSave();
-    mark(right);
+    // A recording that never played is not a test of the ear, so leave it unscored.
+    const unheard = ears.ctx !== "word" && audioBroken;
+    if (!unheard) mark(right);
 
     const fb = $("#earFb");
     fb.className = "feedback " + (right ? "good" : "bad");
