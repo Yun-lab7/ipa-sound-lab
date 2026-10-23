@@ -95,6 +95,10 @@ Settings → Pages → Source → **Deploy from a branch**, branch `main`, folde
 - The recordings are Ogg Vorbis, which some older browsers (notably older Safari) cannot play. When playback fails the page falls back to speaking the example word.
 - The dictionary holds about 300 common words. Anything else is transcribed by letter-to-sound rules and tagged **guess**. To add words, edit the `RAW` array in `index.html`: `word|UK|US`, with the third field left out when the two match.
 
+## How it was built
+
+[docs/how-it-was-built.md](docs/how-it-was-built.md) records the decisions and the reasons behind them: why the Seeing Speech videos could not be embedded by anyone, why the recordings travel inside the page, why nonsense syllables were rejected for the word test, what the two tools in `tools/` are for, and the seven bugs the data checker found on its first run.
+
 ## Credits
 
 - [Cambridge Dictionary phonetics key](https://dictionary.cambridge.org/zht/help/phonetics.html) — the symbol set and conventions
