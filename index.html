@@ -187,7 +187,7 @@
     font-family: var(--font-ipa); font-size: clamp(24px, 6.5vw, 34px); min-height: 62px;
     border: 2px dashed var(--line); border-radius: 12px; padding: 8px 14px;
     display: flex; align-items: center; justify-content: center; gap: 2px;
-    overflow-wrap: anywhere; background: var(--surface-2); text-align: center;
+    flex-wrap: wrap; overflow-wrap: anywhere; background: var(--surface-2); text-align: center;
   }
   .slot.filled { border-style: solid; border-color: var(--accent); }
   .slot .tok.ok { color: var(--ok); }
@@ -1991,6 +1991,11 @@
     if (m === "look") $("#lookInput").focus();
   }
   document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => openMode(b.dataset.mode)));
+  // A shared link like .../#ears should work even if the page is already open.
+  window.addEventListener("hashchange", () => {
+    const m = location.hash.slice(1);
+    if (MODES.indexOf(m) >= 0 && m !== current) openMode(m);
+  });
 
   document.addEventListener("keydown", e => {
     if (e.key === "Escape" && !$("#soundModal").hidden) { closeSound(); return; }
