@@ -143,11 +143,13 @@
   .modal-head .nm { font-size: 14px; color: var(--muted); flex: 1 1 160px; min-width: 0; }
   .modal-head .nm b { display: block; color: var(--ink); font-size: 16px; font-family: var(--font-display); }
   .howto {
-    margin: 0; font-size: 18px; line-height: 1.5; color: var(--ink);
-    background: var(--accent-soft); border-left: 4px solid var(--accent);
-    border-radius: 0 10px 10px 0; padding: 12px 14px;
+    margin: 0; color: var(--ink); background: var(--accent-soft);
+    border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0;
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
   }
-  .vtcap { margin: 12px 0 0; font-size: 19px; font-weight: 700; color: var(--accent); min-height: 26px; line-height: 1.35; }
+  .howmain { font-size: 18px; line-height: 1.5; font-weight: 700; }
+  .howfacts { font-size: 15px; line-height: 1.5; color: var(--muted); }
+  .howtip { font-size: 15px; line-height: 1.5; }
   .vt { width: 100%; height: auto; display: block; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; }
   .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
   .facts li { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; font-size: 15px; line-height: 1.4; min-width: 0; }
@@ -378,9 +380,7 @@
     </div>
     <p class="howto" id="modalHow"></p>
     <div id="modalDiagram"></div>
-    <ul class="facts" id="modalFacts"></ul>
     <div class="exrow" id="modalExamples"></div>
-    <p class="hintline" id="modalNote"></p>
     <p class="hintline" id="modalAudio"></p>
     <p class="hintline" id="modalLinks"></p>
   </div>
@@ -975,7 +975,6 @@
 
   function diagramHTML(sym) {
     return frontSVG() + sideSVG(sym)
-      + '<p class="vtcap" id="vtCaption">Mouth at rest</p>'
       + '<div class="row" style="margin-top:10px">'
       + '<div class="seg" role="group" aria-label="View">'
       + '<button type="button" id="vtViewF" aria-pressed="true">Front</button>'
@@ -1050,8 +1049,6 @@
       e.buzz.setAttribute('opacity', '0');
       e.voice.textContent = 'voice off';
     }
-    const cap = document.getElementById('vtCaption');
-    if (cap && s.cap && cap.textContent !== s.cap) cap.textContent = s.cap;
   }
 
   function frame(now) {
@@ -1261,8 +1258,6 @@
     const a = s.a;
     $("#modalSym").textContent = "/" + sym + "/";
     $("#modalName").innerHTML = "<b>" + s.n + "</b>";
-    $("#modalHow").textContent = HOWTO[sym] || "";
-    $("#modalHow").hidden = !HOWTO[sym];
     $("#modalDiagram").innerHTML = diagramHTML(sym);
     startAnim(sym);
     document.getElementById("vtPlay").addEventListener("click", toggleAnim);
@@ -1286,7 +1281,7 @@
       facts.push(["Voicing", a.vd ? "voiced — the vocal folds vibrate" : "voiceless — the vocal folds stay open"]);
       facts.push(["Soft palate", a.m === "nasal" ? "lowered, so air escapes through the nose" : "raised, sealing off the nose"]);
     }
-    $("#modalFacts").innerHTML = facts.map(f => "<li><b>" + f[0] + "</b>" + f[1] + "</li>").join("");
+    const factLine = facts.map(f => f[1]).join(" · ");
 
     const ex = $("#modalExamples");
     ex.innerHTML = "";
@@ -1300,21 +1295,14 @@
     });
 
     const pairSym = a.t === "c" ? pairedVoicing(sym) : null;
-    $("#modalNote").innerHTML = pairSym
-      ? 'Same mouth position as <b class="ipa">/' + pairSym + "/</b> — the only difference is whether the vocal folds vibrate. Put a finger on your throat and switch between them."
-      : "Hold the position and say the example words slowly to feel where your tongue sits.";
-
-    const parts = partsOf(sym);
-    const creditOne = s => {
-      const r = AUDIO[s];
-      return '<a href="' + r.u + '" target="_blank" rel="noopener">' + r.t + '</a> by ' + r.a;
-    };
-    $("#modalAudio").innerHTML = !parts
-      ? 'No recording of this sound on its own — the example words are spoken by your browser.'
-      : (parts.length > 1
-          ? 'Played as two recordings, one after the other: ' + creditOne(parts[0]) + ', then ' + creditOne(parts[1])
-          : 'Recording: ' + creditOne(parts[0]))
-        + ', <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a>, used unchanged.';
+    // Everything the learner reads sits in one block: what to do, then the short
+    // phonetic facts, then the tip that matters most for this sound.
+    $("#modalHow").innerHTML =
+      '<b class="howmain">' + (HOWTO[sym] || s.n) + "</b>"
+      + '<span class="howfacts">' + factLine + "</span>"
+      + '<span class="howtip">' + (pairSym
+        ? "Same mouth position as /" + pairSym + "/ — only the voice is different. Put a finger on your throat and switch between them."
+        : "Hold the position and say the example words slowly, so you can feel where your tongue sits.") + "</span>";
 
     // Seeing Speech hosts real animation, MRI and ultrasound of each IPA sound.
     // Their footage is the University of Glasgow's, so link to it rather than copy it.
