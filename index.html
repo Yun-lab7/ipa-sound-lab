@@ -142,6 +142,7 @@
   .modal-head .sym { font-family: var(--font-ipa); font-size: 38px; font-weight: 700; color: var(--accent); line-height: 1; }
   .modal-head .nm { font-size: 14px; color: var(--muted); flex: 1 1 160px; min-width: 0; }
   .modal-head .nm b { display: block; color: var(--ink); font-size: 16px; font-family: var(--font-display); }
+  .vtcap { margin: 10px 0 0; font-size: 14px; font-weight: 700; color: var(--accent); min-height: 20px; }
   .vt { width: 100%; height: auto; display: block; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; }
   .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
   .facts li { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font-size: 13px; min-width: 0; }
@@ -388,7 +389,7 @@
     "berry|ˈber.i","light|laɪt","right|raɪt","glass|ɡlɑːs|ɡlæs","grass|ɡrɑːs|ɡræs","three|θriː",
     "free|friː","thin|θɪn","sin|sɪn","thing|θɪŋ","sink|sɪŋk","sung|sʌŋ","ran|ræn","rang|ræŋ",
     "cheap|tʃiːp","jeep|dʒiːp","share|ʃeər|ʃer","key|kiː","about|əˈbaʊt","hot|hɒt|hɑːt",
-    "pot|pɒt|pɑːt","zoo|zuː","pet|pet","four|fɔːr","box|bɒks|bɑːks","behind|bɪˈhaɪnd","is|ɪz",
+    "pot|pɒt|pɑːt","cut|kʌt","we|wiː","zoo|zuː","pet|pet","four|fɔːr","box|bɒks|bɑːks","behind|bɪˈhaɪnd","is|ɪz",
     "pure|pjʊər|pjʊr","situation|ˌsɪtʃ.uˈeɪ.ʃən","influence|ˈɪn.flu.əns"
   ];
 
@@ -581,39 +582,77 @@
     }, CONS_FRONT[p], m === "nasal" ? { open: 0, tv: 0 } : {}));
   }
 
-  /* A syllable-length timeline, slow enough to follow: rest, into the
-     articulation, hold, release, back to rest. */
+  /* A syllable-length timeline, slow enough to follow. Each step carries a short
+     caption, so the panel can say in words what the picture is doing. */
   function timeline(sym) {
     const a = SOUND[sym].a, K = [];
-    const at = (t, s) => K.push({ t: t, s: s });
+    const at = (t, s, c) => K.push({ t: t, s: s, c: c });
     if (a.t === "v") {
       const A = vowelState(a.v, a.rhotic);
       if (a.g) {
         const B = vowelState(a.g, 0);
-        at(0, REST); at(420, A); at(800, A); at(1500, B); at(1900, B); at(2320, REST); at(2800, REST);
+        at(0, REST, "Mouth at rest");
+        at(420, A, "Tongue moves to the first vowel");
+        at(800, A, "First vowel");
+        at(1500, B, "Tongue glides to the second vowel");
+        at(1900, B, "Second vowel");
+        at(2320, REST, "Back to rest");
+        at(2800, REST, "Mouth at rest");
       } else {
-        at(0, REST); at(440, A); at(1400, A); at(1820, REST); at(2300, REST);
+        at(0, REST, "Mouth at rest");
+        at(440, A, "Tongue and lips move into place");
+        at(1400, A, "Hold the vowel");
+        at(1820, REST, "Back to rest");
+        at(2300, REST, "Mouth at rest");
       }
     } else {
       const C = consState(a.p, a.m);
       const mix = o => Object.assign({}, C, o);
+      const where = PLACE_SHORT[a.p];
       if (a.m === "plosive") {
-        at(0, REST); at(340, mix({ clos: 1 })); at(900, mix({ clos: 1 }));
-        at(980, mix({ burst: 1, open: a.p === "bilabial" ? .3 : .42 }));
-        at(1140, mix({ open: a.p === "bilabial" ? .22 : .36 })); at(1560, REST); at(2050, REST);
+        at(0, REST, "Mouth at rest");
+        at(340, mix({ clos: 1 }), "Close the air off at " + where);
+        at(900, mix({ clos: 1 }), "Hold — no air can get out");
+        at(980, mix({ burst: 1, open: a.p === "bilabial" ? .3 : .42 }), "Let go — the air bursts out");
+        at(1140, mix({ open: a.p === "bilabial" ? .22 : .36 }), "Air flows again");
+        at(1560, REST, "Back to rest");
+        at(2050, REST, "Mouth at rest");
       } else if (a.m === "affricate") {
-        at(0, REST); at(330, mix({ clos: 1 })); at(820, mix({ clos: 1 }));
-        at(930, mix({ fric: 1 })); at(1540, mix({ fric: 1 })); at(1950, REST); at(2400, REST);
+        at(0, REST, "Mouth at rest");
+        at(330, mix({ clos: 1 }), "Close the air off at " + where);
+        at(820, mix({ clos: 1 }), "Hold the closure");
+        at(930, mix({ fric: 1 }), "Open slowly into a hiss");
+        at(1540, mix({ fric: 1 }), "Hissing");
+        at(1950, REST, "Back to rest");
+        at(2400, REST, "Mouth at rest");
       } else if (a.m === "fricative") {
-        at(0, REST); at(380, mix({ fric: 1 })); at(1560, mix({ fric: 1 })); at(1960, REST); at(2400, REST);
+        at(0, REST, "Mouth at rest");
+        at(380, mix({ fric: 1 }), "Make a narrow gap at " + where);
+        at(1560, mix({ fric: 1 }), "Air hisses through the gap");
+        at(1960, REST, "Back to rest");
+        at(2400, REST, "Mouth at rest");
       } else if (a.m === "nasal") {
-        at(0, REST); at(400, mix({ clos: 1 })); at(1480, mix({ clos: 1 })); at(1900, REST); at(2350, REST);
+        at(0, REST, "Mouth at rest");
+        at(400, mix({ clos: 1 }), "Close the mouth, drop the soft palate");
+        at(1480, mix({ clos: 1 }), "Air goes out through the nose");
+        at(1900, REST, "Back to rest");
+        at(2350, REST, "Mouth at rest");
       } else {
-        at(0, REST); at(420, C); at(1360, C); at(1780, REST); at(2250, REST);
+        at(0, REST, "Mouth at rest");
+        at(420, C, "Come close at " + where + ", but not too close");
+        at(1360, C, "Air flows freely — no hiss");
+        at(1780, REST, "Back to rest");
+        at(2250, REST, "Mouth at rest");
       }
     }
     return K;
   }
+  const PLACE_SHORT = {
+    bilabial: "the lips", labiodental: "the lip and teeth", dental: "the teeth",
+    alveolar: "the ridge behind the teeth", postalveolar: "just behind the ridge",
+    palatal: "the hard palate", velar: "the soft palate", glottal: "the throat",
+    labialvelar: "the lips"
+  };
   function sampleTimeline(K, t) {
     const end = K[K.length - 1].t;
     const x = ((t % end) + end) % end;
@@ -624,6 +663,7 @@
     const e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
     const out = {};
     Object.keys(REST).forEach(key => { out[key] = lerp(a.s[key], b.s[key], e); });
+    out.cap = b.c || a.c || "";
     return out;
   }
 
@@ -745,8 +785,16 @@
       + '<circle id="vtClos" cx="' + pt[0] + '" cy="' + pt[1] + '" r="7" fill="#d8453a" opacity="0"/>'
       + '<g id="vtFric" transform="translate(' + (pt[0] + 6) + ',' + (pt[1] + 10) + ')" opacity="0">' + waves + "</g>"
       // larynx
+      + '<g id="vtLarynxG">'
       + '<circle id="vtLarynx" cx="120" cy="256" r="11" fill="none" stroke="var(--ochre)" stroke-width="2.4"/>'
-      + '<text id="vtVoice" x="120" y="282" text-anchor="middle" font-size="10" fill="var(--muted)">voiceless</text>'
+      + '<path id="vtBuzz" d="M 136,246 q 5,10 0,20 M 144,242 q 8,14 0,28" fill="none" stroke="var(--ochre)" stroke-width="2" opacity="0"/>'
+      + '</g>'
+      + '<text id="vtVoice" x="12" y="292" font-size="10" fill="var(--muted)">voice off</text>'
+      + '<text x="86" y="260" text-anchor="end" font-size="9" fill="var(--muted)">voice box</text>'
+      + '<path d="M 90,257 L 108,256" stroke="var(--muted)" stroke-width="1" opacity="0.7"/>'
+      + '<text x="196" y="196" text-anchor="middle" font-size="9" fill="var(--muted)">tongue</text>'
+      + '<text x="104" y="150" text-anchor="middle" font-size="9" fill="var(--muted)">soft palate</text>'
+      + '<path d="M 118,154 L 132,164" stroke="var(--muted)" stroke-width="1" opacity="0.7"/>'
       + '<text x="252" y="76" text-anchor="end" font-size="9" fill="var(--muted)">nasal cavity</text>'
       + '<text x="290" y="292" text-anchor="end" font-size="9" fill="var(--muted)">mid-sagittal — facing right</text>'
       + "</svg>";
@@ -754,6 +802,7 @@
 
   function diagramHTML(sym) {
     return frontSVG() + sideSVG(sym)
+      + '<p class="vtcap" id="vtCaption">Mouth at rest</p>'
       + '<div class="row" style="margin-top:10px">'
       + '<div class="seg" role="group" aria-label="View">'
       + '<button type="button" id="vtViewF" aria-pressed="true">Front</button>'
@@ -774,7 +823,7 @@
       fTeethU: g("vtFTeethU"), fTeethL: g("vtFTeethL"), fTongue: g("vtFTongue"), fShine: g("vtFShine"),
       jaw: g("vtJaw"), tongue: g("vtTongue"), velum: g("vtVelum"),
       airO: g("vtAirO"), airN: g("vtAirN"), clos: g("vtClos"), fric: g("vtFric"), burst: g("vtBurst"),
-      larynx: g("vtLarynx"), voice: g("vtVoice")
+      larynx: g("vtLarynx"), larynxG: g("vtLarynxG"), buzz: g("vtBuzz"), voice: g("vtVoice")
     };
   }
   function drawState(s, ms) {
@@ -816,15 +865,21 @@
     e.airN.setAttribute("stroke-dashoffset", (-flow).toFixed(1));
     if (s.fric > .05) e.fric.setAttribute("transform", "translate(" + n1(anim.px + 8 + Math.sin(ms / 70) * 1.6) + "," + (anim.py + 8) + ")");
     if (anim.voiced) {
-      e.larynx.setAttribute("fill", "var(--ochre)");
-      e.larynx.setAttribute("r", n1(11 + Math.sin(ms / 85) * 1.8));
-      e.voice.textContent = "voiced";
+      const shake = Math.sin(ms / 45) * 1.4;
+      e.larynxG.setAttribute('transform', 'translate(' + shake.toFixed(2) + ',0)');
+      e.larynx.setAttribute('fill', 'var(--ochre)');
+      e.buzz.setAttribute('opacity', (0.55 + Math.sin(ms / 45) * 0.35).toFixed(2));
+      e.voice.textContent = 'voice on';
     } else {
-      e.larynx.setAttribute("fill", "none");
-      e.larynx.setAttribute("r", "11");
-      e.voice.textContent = "voiceless";
+      e.larynxG.setAttribute('transform', 'translate(0,0)');
+      e.larynx.setAttribute('fill', 'none');
+      e.buzz.setAttribute('opacity', '0');
+      e.voice.textContent = 'voice off';
     }
+    const cap = document.getElementById('vtCaption');
+    if (cap && s.cap && cap.textContent !== s.cap) cap.textContent = s.cap;
   }
+
   function frame(now) {
     if (!anim.playing) return;
     const ms = now - anim.start;
@@ -1326,6 +1381,12 @@
     const correct = ipaOf(e);
     const used = [correct], opts = [correct];
     for (let i = 0; i < 3; i++) { const d = makeDistractor(correct, used); if (d) { used.push(d); opts.push(d); } }
+    // A few short words (eye /aɪ/) cannot yield three near misses; fill up from other words.
+    let guard = 0;
+    while (opts.length < 4 && guard++ < 200) {
+      const other = ipaOf(pick(ENTRIES));
+      if (used.indexOf(other) < 0) { used.push(other); opts.push(other); }
+    }
     listenQ = { word: e.w };
     $("#listenFb").textContent = ""; $("#listenFb").className = "feedback";
     $("#listenNext").hidden = true;
@@ -1345,11 +1406,11 @@
 
   /* ---- minimal pairs ---- */
   const PAIR_WORDS = [
-    ["ship", "sheep"], ["live", "leave"], ["full", "fool"], ["cat", "cup"], ["bad", "bed"], ["hat", "hut"],
+    ["ship", "sheep"], ["live", "leave"], ["full", "fool"], ["cat", "cut"], ["bad", "bed"], ["hat", "hut"],
     ["work", "walk"], ["cot", "coat"], ["thin", "sin"], ["three", "free"], ["think", "sink"], ["vine", "wine"],
     ["very", "berry"], ["light", "right"], ["glass", "grass"], ["sheep", "cheap"], ["chair", "share"],
     ["cheap", "jeep"], ["bag", "back"], ["cold", "gold"], ["sun", "sung"], ["thin", "thing"], ["ran", "rang"],
-    ["goat", "coat"], ["caught", "court"], ["hot", "hat"], ["pot", "pet"]
+    ["goat", "coat"], ["caught", "coat"], ["hot", "hat"], ["pot", "pet"]
   ];
   function contrastLabel(a, b) {
     const ta = tokenize(stripMarks(a)), tb = tokenize(stripMarks(b));
