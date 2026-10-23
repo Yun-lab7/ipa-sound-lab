@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Practise the 44 phonemes of English in Cambridge Dictionary notation: ear training on single sounds and in words, real recordings, animated mouth shapes, dictation and word lookup.">
+<meta name="description" content="Practise the 44 phonemes of English: ear training on single sounds, real recordings, animated mouth shapes, dictation and word lookup.">
 <style>
   html { color-scheme: light; }
   :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -1120,6 +1120,11 @@
     return voices.filter(v => want.test(v.lang))[0] || voices.filter(v => /^en/i.test(v.lang))[0] || null;
   }
   function say(text, rate) {
+    // Inside the Android app the WebView often has no voice of its own, so the
+    // device's own speech is offered through a bridge.
+    try {
+      if (window.AndroidTTS && window.AndroidTTS.speak && window.AndroidTTS.speak(text, rate || 0.85)) return true;
+    } catch (e) {}
     if (!("speechSynthesis" in window)) return false;
     try {
       speechSynthesis.cancel();
@@ -1132,6 +1137,7 @@
     } catch (e) { return false; }
   }
   function speechNote() {
+    if (window.AndroidTTS && window.AndroidTTS.speak) return "Single sounds are recordings; example words use the device voice.";
     if (!("speechSynthesis" in window)) return "This browser has no speech synthesis, so the listening modes will show the word instead.";
     const v = voiceFor(accent);
     if (!v) return "No English voice has loaded yet — tap a cell again in a moment.";

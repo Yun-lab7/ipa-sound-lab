@@ -5,3 +5,10 @@ node_modules/
 .vscode/
 *.log
 .claude/
+
+# Android build output
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/app/src/main/assets/index.html

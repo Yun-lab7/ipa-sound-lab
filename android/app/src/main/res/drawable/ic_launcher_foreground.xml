@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Two slashes, the way a phonemic transcription is written: /…/ -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40.5,30.5 L47.5,30.5 L36.5,77.5 L29.5,77.5 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M78.5,30.5 L85.5,30.5 L74.5,77.5 L67.5,77.5 Z" />
+    <path
+        android:fillColor="#A7E0DA"
+        android:pathData="M52,46 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+    <path
+        android:fillColor="#A7E0DA"
+        android:pathData="M52,62 h12 v6 h-12 Z" />
+</vector>
