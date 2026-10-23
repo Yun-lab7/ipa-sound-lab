@@ -17,7 +17,14 @@ An IPA practice page for the 44 phonemes of English, in **Cambridge Dictionary n
 
 ## Which sounds your ear misses
 
-The ear-training mode keeps a score for every sound, not just a total. Under the question it shows your hardest sounds as bars — the ones you pick wrong most often. The set list has **My weak sounds**, which drills only those. Scores are stored in your browser and can be cleared from the panel.
+The ear-training mode keeps a score for every sound, and keeps it **separately for each context**: one score for the sound on its own, another for the sound inside a word. **Both, in turn** alternates the two on the same set of sounds, so a confusable pair such as /θ s f/ is met both ways in one session. Under the question the two set scores sit side by side, with a table for each sound.
+
+That comparison is the point of the page made visible: a learner can score well when a word surrounds the sound and badly when it does not, which means the word was doing work the ear could not. Two things keep the numbers honest:
+
+- **No comparison below ten answers each way.** Until then the panel says how many more are needed, because a gap from two or three answers is mostly luck.
+- **The caveat sits next to the numbers, not in a footnote.** On its own, each sound is one recorded speaker; in a word, the browser's computer voice speaks. Part of any gap therefore comes from the change of voice rather than from the word, and neither score is a test across speakers.
+
+A round whose recording never played is not scored or recorded anywhere, and a word question that fell back to the isolated sound is recorded as isolated. **My weak sounds** drills the sounds you miss most in the current context. Scores are stored in your browser and can be cleared from the panel; scores saved by earlier versions, which did not separate the contexts, are carried over as "on its own".
 
 This is what makes single-sound practice worth doing: a whole-word test hides the problem, because context lets you guess. With one sound and no context there is nothing to guess from. The **in a word** context is the next step up — the sound is back in a real word, but the word is picked so that no other choice appears in it, so guessing still does not work.
 

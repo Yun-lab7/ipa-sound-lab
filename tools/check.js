@@ -218,6 +218,19 @@ if (!/while \(opts\.length < 4/.test(src)) note("quiz", "no fallback to top the 
 
 if (!fail.length) console.log("Ear training: pool, sets and word contexts all check out.");
 
+/* ---- 10. scores: kept apart by context, and never written for an unheard round ---- */
+// Plain string checks: these guard specific lines, and a regex would need escaping
+// that is easy to get wrong.
+if (!src.includes("stats: { alone: {}, word: {} }")) note("scores", "ear-test scores are not kept separately for each context");
+{
+  const guard = src.indexOf("if (!unheard) {");
+  const write = src.indexOf("bucket[ears.target] = st;");
+  if (guard < 0 || write < 0 || write < guard || write - guard > 300) {
+    note("scores", "a round whose recording never played can still be written to the scores");
+  }
+}
+if (!src.includes('ears.qctx = (want === "word" && word) ? "word" : "alone"')) note("scores", "a word question that fell back to the isolated sound is not recorded as isolated");
+
 /* ---- report ---- */
 const groups = {};
 fail.forEach(f => { const g = f.split(" | ")[0]; (groups[g] = groups[g] || []).push(f.split(" | ")[1]); });
