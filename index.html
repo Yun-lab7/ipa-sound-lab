@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="英語 44 個音素的 IPA 練習室：音標表、聽寫拼音、單字音標解析，英式 RP 與美式 GA 可切換。">
+<meta name="description" content="Practise the 44 phonemes of English in Cambridge Dictionary notation: animated mouth shapes, dictation, and word lookup, UK and US.">
 <style>
   html { color-scheme: light; }
   :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -11,12 +11,11 @@
   img { max-width: 100%; }
   [hidden] { display: none !important; }
 </style>
-<title>Sound Lab 音標練習室</title>
-
+<title>Sound Lab</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Noto+Sans:wght@400;500;700&display=swap">
 <style>
-  /* Layout: header band (title + accent switch + score), tab row, one working card per mode.
-     The phoneme keyboard is a dense grid that echoes the printed IPA chart. */
+  /* Layout: header band (title, accent switch, score), tab row, one working card per mode.
+     The chart keeps the printed phonemic-chart grid; every cell opens an articulation panel. */
   :root {
     --bg: #eceff2;
     --surface: #ffffff;
@@ -30,40 +29,25 @@
     --ochre: #8f5f13;
     --ok: #1d7a4c;
     --err: #b02a21;
+    --skin: #dfe6ea;
     --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
     --font-body: "Noto Sans", "Segoe UI", system-ui, sans-serif;
     --font-ipa: "Noto Sans", "Charis SIL", "Doulos SIL", "Segoe UI", sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0e1419;
-      --surface: #161f27;
-      --surface-2: #1e2a34;
-      --ink: #e8eef2;
-      --muted: #95a7b4;
-      --line: #2d3b47;
-      --accent: #4ec9bd;
-      --accent-ink: #06231f;
-      --accent-soft: #15322f;
-      --ochre: #d9a65d;
-      --ok: #55c98d;
-      --err: #ef7d73;
+      --bg: #0e1419; --surface: #161f27; --surface-2: #1e2a34; --ink: #e8eef2;
+      --muted: #95a7b4; --line: #2d3b47; --accent: #4ec9bd; --accent-ink: #06231f;
+      --accent-soft: #15322f; --ochre: #d9a65d; --ok: #55c98d; --err: #ef7d73;
+      --skin: #243240;
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0e1419;
-    --surface: #161f27;
-    --surface-2: #1e2a34;
-    --ink: #e8eef2;
-    --muted: #95a7b4;
-    --line: #2d3b47;
-    --accent: #4ec9bd;
-    --accent-ink: #06231f;
-    --accent-soft: #15322f;
-    --ochre: #d9a65d;
-    --ok: #55c98d;
-    --err: #ef7d73;
+    --bg: #0e1419; --surface: #161f27; --surface-2: #1e2a34; --ink: #e8eef2;
+    --muted: #95a7b4; --line: #2d3b47; --accent: #4ec9bd; --accent-ink: #06231f;
+    --accent-soft: #15322f; --ochre: #d9a65d; --ok: #55c98d; --err: #ef7d73;
+    --skin: #243240;
     color-scheme: dark;
   }
 
@@ -72,8 +56,7 @@
   body { margin: 0; font-family: var(--font-body); color: var(--ink); font-size: 16px; line-height: 1.5; }
 
   .wrap {
-    max-width: 900px;
-    margin: 0 auto;
+    max-width: 920px; margin: 0 auto;
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
     padding-block: 20px 56px;
@@ -81,16 +64,13 @@
   }
 
   .titlerow { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
-  h1 {
-    font-family: var(--font-display); font-weight: 800;
-    font-size: clamp(26px, 5vw, 38px); letter-spacing: -0.02em; margin: 0; text-wrap: balance;
-  }
+  h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(26px, 5vw, 38px); letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
   h1 .slash { color: var(--accent); font-family: var(--font-ipa); font-weight: 500; }
-  .sub { color: var(--muted); font-size: 14px; margin: 4px 0 0; max-width: 46ch; }
+  .sub { color: var(--muted); font-size: 14px; margin: 4px 0 0; max-width: 52ch; }
   .headright { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
   .score { font-family: var(--font-display); font-variant-numeric: tabular-nums; text-align: right; line-height: 1.2; }
   .score b { font-size: 22px; }
-  .score span { display: block; font-family: var(--font-body); font-size: 12px; color: var(--muted); letter-spacing: 0.05em; }
+  .score span { display: block; font-family: var(--font-body); font-size: 12px; color: var(--muted); }
 
   .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); }
   .seg button { font: inherit; font-size: 13px; padding: 7px 14px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
@@ -104,14 +84,8 @@
   nav.tabs button:hover { color: var(--ink); }
   nav.tabs button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
 
-  .card {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-    padding: 22px; display: flex; flex-direction: column; gap: 18px;
-  }
-  .card h2 {
-    font-family: var(--font-display); font-size: 14px; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--muted); margin: 0; font-weight: 700;
-  }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 18px; }
+  .card h2 { font-family: var(--font-display); font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 0; font-weight: 700; }
 
   button.btn { font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); padding: 10px 16px; }
   button.btn:hover { border-color: var(--accent); }
@@ -125,9 +99,10 @@
   /* chart */
   .group { display: flex; flex-direction: column; gap: 8px; }
   .group h3 { margin: 0; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ochre); font-family: var(--font-display); }
+  .count { font-family: var(--font-body); font-size: 11px; color: var(--muted); font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: 6px; }
   .cells { display: grid; gap: 6px; }
-  .cells.vgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .cells.dgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .cells.vgrid, .cells.dgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .cells.wgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .cells.cgrid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
   @media (max-width: 780px) { .cells.cgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   .cell {
@@ -139,29 +114,45 @@
   .cell:hover { border-color: var(--accent); background: var(--accent-soft); }
   .cell .sym { font-family: var(--font-ipa); font-size: 21px; font-weight: 700; color: var(--accent); line-height: 1.2; }
   .cell .ex { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
-  .cell.voiceless { border-left: 3px solid var(--muted); }
+  /* Voiceless consonants are drawn pale; voiced ones carry full colour and weight. */
+  .cell.voiceless { border-left: 3px solid var(--line); background: color-mix(in srgb, var(--surface-2) 45%, var(--surface)); }
+  .cell.voiceless .sym { color: color-mix(in srgb, var(--accent) 45%, var(--muted)); font-weight: 500; }
+  .cell.voiceless .ex { opacity: .72; }
   .cell.voiced { border-left: 3px solid var(--ochre); }
-  .cell .v { position: absolute; top: 4px; right: 5px; font-size: 9px; color: var(--muted); }
+  .cell.voiced .sym { color: var(--accent); }
+  .cell .v { position: absolute; top: 4px; right: 5px; font-size: 9px; color: var(--line); }
   .cell.voiced .v { color: var(--ochre); }
   .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--muted); align-items: center; }
   .legend i { display: inline-block; width: 3px; height: 13px; border-radius: 2px; margin-right: 6px; vertical-align: -2px; }
   .caption { font-size: 12px; color: var(--muted); margin: 0; }
-  .count { font-family: var(--font-body); font-size: 11px; color: var(--muted); font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: 6px; }
 
-  /* prompt + options */
-  .prompt {
-    background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
-    padding: 22px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  /* sound panel */
+  .modal { position: fixed; inset: 0; background: rgba(8, 14, 18, .62); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
+  .modal-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px;
+    width: 100%; max-width: 580px; max-height: 88vh; overflow: auto; display: flex; flex-direction: column; gap: 14px;
   }
+  .modal-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .modal-head .sym { font-family: var(--font-ipa); font-size: 38px; font-weight: 700; color: var(--accent); line-height: 1; }
+  .modal-head .nm { font-size: 14px; color: var(--muted); flex: 1 1 160px; min-width: 0; }
+  .modal-head .nm b { display: block; color: var(--ink); font-size: 16px; font-family: var(--font-display); }
+  .vt { width: 100%; height: auto; display: block; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .facts li { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font-size: 13px; min-width: 0; }
+  .facts b { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  .exrow { display: flex; flex-wrap: wrap; gap: 8px; }
+  .exrow button { font: inherit; font-size: 15px; cursor: pointer; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 999px; padding: 7px 14px; }
+  .exrow button:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .exrow button span { font-family: var(--font-ipa); color: var(--muted); margin-left: 6px; font-size: 13px; }
+  .modal a { color: var(--accent); }
+
+  /* prompts and options */
+  .prompt { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 22px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .prompt .big { font-family: var(--font-ipa); font-size: clamp(30px, 8vw, 46px); font-weight: 700; overflow-wrap: anywhere; }
   .prompt .word { font-family: var(--font-display); font-size: clamp(28px, 7vw, 40px); font-weight: 700; letter-spacing: -0.01em; overflow-wrap: anywhere; }
 
   .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
-  .opt {
-    font: inherit; cursor: pointer; text-align: left; border: 1px solid var(--line);
-    background: var(--surface); color: var(--ink); border-radius: 10px; padding: 14px 16px;
-    font-size: 19px; min-width: 0; overflow-wrap: anywhere; display: flex; align-items: center; gap: 10px;
-  }
+  .opt { font: inherit; cursor: pointer; text-align: left; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 14px 16px; font-size: 19px; min-width: 0; overflow-wrap: anywhere; display: flex; align-items: center; gap: 10px; }
   .opt .key { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; flex: none; }
   .opt:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
   .opt:disabled { cursor: default; }
@@ -175,7 +166,7 @@
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .spacer { flex: 1 1 auto; }
 
-  /* build */
+  /* dictation */
   .slot {
     font-family: var(--font-ipa); font-size: clamp(24px, 6.5vw, 34px); min-height: 62px;
     border: 2px dashed var(--line); border-radius: 12px; padding: 8px 14px;
@@ -186,41 +177,29 @@
   .slot .tok.ok { color: var(--ok); }
   .slot .tok.no { color: var(--err); text-decoration: underline wavy; }
   .keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 6px; }
-  .key-btn {
-    font-family: var(--font-ipa); font-size: 19px; padding: 10px 4px; border: 1px solid var(--line);
-    border-radius: 8px; background: var(--surface-2); color: var(--ink); cursor: pointer; min-width: 0;
-  }
+  .key-btn { font-family: var(--font-ipa); font-size: 19px; padding: 10px 4px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--ink); cursor: pointer; min-width: 0; }
   .key-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
   .key-btn.wide { grid-column: span 2; font-family: var(--font-body); font-size: 13px; }
 
   /* lookup */
   .lookrow { display: flex; gap: 8px; flex-wrap: wrap; }
-  #lookInput {
-    font: inherit; font-size: 17px; flex: 1 1 220px; min-width: 0; padding: 11px 14px;
-    border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); color: var(--ink);
-  }
+  #lookInput { font: inherit; font-size: 17px; flex: 1 1 220px; min-width: 0; padding: 11px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); color: var(--ink); }
   .result { display: flex; flex-direction: column; gap: 10px; }
-  .wordcard {
-    border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: var(--surface-2);
-    display: flex; flex-direction: column; gap: 10px;
-  }
+  .wordcard { border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: var(--surface-2); display: flex; flex-direction: column; gap: 10px; }
   .wordcard .wline { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
   .wordcard .w { font-family: var(--font-display); font-size: 24px; font-weight: 700; }
   .wordcard .tr { font-family: var(--font-ipa); font-size: 24px; color: var(--accent); overflow-wrap: anywhere; }
   .tag { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; color: var(--muted); }
   .tag.guess { color: var(--ochre); border-color: var(--ochre); }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip {
-    font-family: var(--font-ipa); font-size: 17px; border: 1px solid var(--line); border-radius: 8px;
-    padding: 5px 10px; background: var(--surface); cursor: pointer; color: var(--ink);
-  }
+  .chip { font-family: var(--font-ipa); font-size: 17px; border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; background: var(--surface); cursor: pointer; color: var(--ink); }
   .chip:hover { border-color: var(--accent); background: var(--accent-soft); }
-  .chip small { font-family: var(--font-body); font-size: 11px; color: var(--muted); margin-left: 5px; }
+  .chip.flat { cursor: default; color: var(--muted); }
 
   .meter { height: 6px; background: var(--surface-2); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
   .meter > i { display: block; height: 100%; background: var(--accent); width: 0%; transition: width .3s ease; }
 
-  footer.note { font-size: 12px; color: var(--muted); text-align: center; }
+  footer.note { font-size: 12px; color: var(--muted); text-align: center; max-width: 70ch; margin: 0 auto; }
   footer.note code { font-family: var(--font-ipa); }
 </style>
 </head>
@@ -230,50 +209,50 @@
     <div class="titlerow">
       <div>
         <h1><span class="slash">/</span>Sound Lab<span class="slash">/</span></h1>
-        <p class="sub">英語 44 個音素：聽遍每一個音標、聽寫拼音、查單字音標。英式 RP 與美式 GA 隨時切換。</p>
+        <p class="sub">The 44 phonemes of English in Cambridge Dictionary notation. Hear every symbol, see how the mouth makes it, and spell words by ear.</p>
       </div>
       <div class="headright">
-        <div class="seg" role="group" aria-label="口音">
-          <button type="button" id="accGB" aria-pressed="true">英式 RP</button>
-          <button type="button" id="accUS" aria-pressed="false">美式 GA</button>
+        <div class="seg" role="group" aria-label="Accent">
+          <button type="button" id="accGB" aria-pressed="true">UK</button>
+          <button type="button" id="accUS" aria-pressed="false">US</button>
         </div>
-        <div class="score"><b id="scoreNum">0 / 0</b><span id="streakTxt">連對 0</span></div>
+        <div class="score"><b id="scoreNum">0 / 0</b><span id="streakTxt">streak 0</span></div>
       </div>
     </div>
     <div class="meter" aria-hidden="true"><i id="meterBar"></i></div>
-    <nav class="tabs" role="tablist" aria-label="練習模式">
-      <button role="tab" id="tab-chart" aria-selected="true" data-mode="chart">音標表</button>
-      <button role="tab" id="tab-build" aria-selected="false" data-mode="build">聽寫拼音</button>
-      <button role="tab" id="tab-look" aria-selected="false" data-mode="look">查單字音標</button>
-      <button role="tab" id="tab-listen" aria-selected="false" data-mode="listen">聽音選音標</button>
-      <button role="tab" id="tab-pairs" aria-selected="false" data-mode="pairs">最小對立對</button>
+    <nav class="tabs" role="tablist" aria-label="Practice modes">
+      <button role="tab" id="tab-chart" aria-selected="true" data-mode="chart">Chart</button>
+      <button role="tab" id="tab-build" aria-selected="false" data-mode="build">Dictation</button>
+      <button role="tab" id="tab-look" aria-selected="false" data-mode="look">Word lookup</button>
+      <button role="tab" id="tab-listen" aria-selected="false" data-mode="listen">Pick the transcription</button>
+      <button role="tab" id="tab-pairs" aria-selected="false" data-mode="pairs">Minimal pairs</button>
     </nav>
   </header>
 
   <!-- CHART -->
   <section class="card" id="panel-chart">
-    <h2 id="chartTitle">IPA chart · 點一下聽例字</h2>
+    <h2 id="chartTitle">Phonemic chart</h2>
     <div id="chartGroups" style="display:flex;flex-direction:column;gap:18px"></div>
-    <p class="hintline" id="chartNote">每一格是一個音素與它的例字。聲音由瀏覽器的語音合成發出；語音合成唸不出孤立的音素，所以點下去聽到的是完整例字。</p>
+    <p class="hintline" id="chartNote"></p>
   </section>
 
-  <!-- BUILD (dictation) -->
+  <!-- DICTATION -->
   <section class="card" id="panel-build" hidden>
-    <h2>聽寫拼音 · 聽到的字，把每個音都拼出來</h2>
+    <h2>Dictation · spell every sound you hear</h2>
     <div class="prompt">
-      <button class="btn primary" id="buildPlay" type="button">▶ 播放單字</button>
-      <div class="word" id="buildWord" style="font-size:20px;color:var(--muted)">先聽，拼不出來再看字</div>
+      <button class="btn primary" id="buildPlay" type="button">▶ Play word</button>
+      <div class="word" id="buildWord" style="font-size:20px;color:var(--muted)">Listen first — reveal the spelling only if you need it</div>
       <div class="row" style="justify-content:center">
-        <button class="btn" id="buildReveal" type="button">顯示拼法</button>
-        <button class="btn" id="buildSlow" type="button">慢速重播</button>
+        <button class="btn" id="buildReveal" type="button">Show the word</button>
+        <button class="btn" id="buildSlow" type="button">Play slowly</button>
       </div>
     </div>
-    <div class="slot" id="buildSlot">／按下方符號開始／</div>
+    <div class="slot" id="buildSlot">/ tap the symbols below /</div>
     <div class="row">
-      <button class="btn primary" id="buildCheck" type="button">檢查</button>
-      <button class="btn" id="buildHint" type="button">提示下一個音</button>
+      <button class="btn primary" id="buildCheck" type="button">Check</button>
+      <button class="btn" id="buildHint" type="button">Reveal next sound</button>
       <div class="spacer"></div>
-      <button class="btn" id="buildSkip" type="button">換一題 →</button>
+      <button class="btn" id="buildSkip" type="button">New word →</button>
     </div>
     <div class="feedback" id="buildFb"></div>
     <div class="keys" id="buildKeys"></div>
@@ -281,102 +260,129 @@
 
   <!-- LOOKUP -->
   <section class="card" id="panel-look" hidden>
-    <h2>查單字音標 · 輸入單字或一句話</h2>
+    <h2>Word lookup · type a word or a sentence</h2>
     <div class="lookrow">
-      <input id="lookInput" type="text" placeholder="例如：comfortable、I would like some water" autocomplete="off" spellcheck="false">
-      <button class="btn primary" id="lookGo" type="button">解析</button>
+      <input id="lookInput" type="text" placeholder="comfortable — or a whole sentence" autocomplete="off" spellcheck="false">
+      <button class="btn primary" id="lookGo" type="button">Transcribe</button>
     </div>
     <div class="result" id="lookResult"></div>
-    <p class="hintline">字典收錄的字標為「字典」；沒收錄的用拼字規則推測，標為「推測」——規則拼不出英文的所有例外，請當參考。</p>
+    <p class="hintline">Words in the built-in dictionary are tagged <b>dictionary</b>. Anything else is spelled out by letter-to-sound rules and tagged <b>guess</b> — English spelling has too many exceptions for rules alone, so treat those as a rough reading. Tap any symbol for its articulation.</p>
   </section>
 
   <!-- LISTEN -->
   <section class="card" id="panel-listen" hidden>
-    <h2>聽音選音標 · 聽到的是哪一串？</h2>
+    <h2>Pick the transcription you heard</h2>
     <div class="prompt">
-      <button class="btn primary" id="listenPlay" type="button">▶ 播放單字</button>
-      <div class="hintline" id="listenHint">按空白鍵可重播，按 1–4 選答案</div>
+      <button class="btn primary" id="listenPlay" type="button">▶ Play word</button>
+      <div class="hintline" id="listenHint">Space replays · 1–4 answers</div>
     </div>
     <div class="options" id="listenOpts"></div>
     <div class="feedback" id="listenFb"></div>
-    <div class="row"><div class="spacer"></div><button class="btn" id="listenNext" type="button" hidden>下一題 →</button></div>
+    <div class="row"><div class="spacer"></div><button class="btn" id="listenNext" type="button" hidden>Next →</button></div>
   </section>
 
   <!-- PAIRS -->
   <section class="card" id="panel-pairs" hidden>
-    <h2>最小對立對 · 只差一個音，你聽到哪一個？</h2>
+    <h2>Minimal pairs · one phoneme apart</h2>
     <div class="prompt">
-      <button class="btn primary" id="pairsPlay" type="button">▶ 播放</button>
-      <div class="hintline" id="pairsHint">兩個字只差一個音素</div>
+      <button class="btn primary" id="pairsPlay" type="button">▶ Play</button>
+      <div class="hintline" id="pairsHint"></div>
     </div>
     <div class="options" id="pairsOpts"></div>
     <div class="feedback" id="pairsFb"></div>
-    <div class="row"><div class="spacer"></div><button class="btn" id="pairsNext" type="button" hidden>下一題 →</button></div>
+    <div class="row"><div class="spacer"></div><button class="btn" id="pairsNext" type="button" hidden>Next →</button></div>
   </section>
 
-  <footer class="note">重音符號 <code>ˈ ˌ</code> 在檢查時會被忽略，音素拼對就算過。</footer>
+  <footer class="note">
+    Cambridge conventions: a dot marks a syllable break (<code>ˈkʌmf.tə.bəl</code>), UK transcriptions print a final <code>r</code> that is only sounded before a vowel (<code>car /kɑːr/</code>), and <code>əl ən</code> are written in full rather than as syllabic consonants. The articulation drawings are schematic — for real MRI and ultrasound of each sound, see <a href="https://www.seeingspeech.ac.uk/ipa-charts/" target="_blank" rel="noopener">Seeing Speech</a>.
+  </footer>
+</div>
+
+<div class="modal" id="soundModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalSym">
+    <div class="modal-head">
+      <span class="sym ipa" id="modalSym">/x/</span>
+      <span class="nm" id="modalName"><b>name</b>description</span>
+      <button class="btn" id="modalClose" type="button">Close</button>
+    </div>
+    <div id="modalDiagram"></div>
+    <ul class="facts" id="modalFacts"></ul>
+    <div class="exrow" id="modalExamples"></div>
+    <p class="hintline" id="modalNote"></p>
+  </div>
 </div>
 
 <script>
 (function () {
   "use strict";
 
-  /* ============ dictionary: word | RP | GA (GA omitted when identical) ============ */
+  /* ======================================================================
+     1. Dictionary — Cambridge Dictionary notation.
+        word | UK | US   (US omitted when it is identical to UK)
+        Syllable dots, final r in UK forms, əl/ən written in full.
+     ====================================================================== */
   const RAW = [
-    "the|ðə","and|ænd","are|ɑː|ɑːr","you|juː","they|ðeɪ","was|wɒz|wʌz","were|wɜː|wɝː",
-    "have|hæv","does|dʌz","of|ɒv|ʌv","for|fɔː|fɔːr","with|wɪð","this|ðɪs","there|ðeə|ðer",
-    "here|hɪə|hɪr","what|wɒt|wʌt","where|weə|wer","who|huː","why|waɪ","how|haʊ","not|nɒt|nɑːt",
-    "would|wʊd","should|ʃʊd","could|kʊd","water|ˈwɔːtə|ˈwɔːtɚ","teacher|ˈtiːtʃə|ˈtiːtʃɚ",
-    "student|ˈstjuːdnt|ˈstuːdnt","school|skuːl","book|bʊk","pen|pen","paper|ˈpeɪpə|ˈpeɪpɚ",
-    "computer|kəmˈpjuːtə|kəmˈpjuːtɚ","phone|fəʊn|foʊn","music|ˈmjuːzɪk","picture|ˈpɪktʃə|ˈpɪktʃɚ",
-    "language|ˈlæŋɡwɪdʒ","word|wɜːd|wɝːd","sentence|ˈsentəns","question|ˈkwestʃən",
-    "answer|ˈɑːnsə|ˈænsɚ","problem|ˈprɒbləm|ˈprɑːbləm","people|ˈpiːpl","person|ˈpɜːsn|ˈpɝːsn",
-    "family|ˈfæməli","mother|ˈmʌðə|ˈmʌðɚ","father|ˈfɑːðə|ˈfɑːðɚ","brother|ˈbrʌðə|ˈbrʌðɚ",
-    "sister|ˈsɪstə|ˈsɪstɚ","friend|frend","child|tʃaɪld","children|ˈtʃɪldrən","man|mæn",
-    "woman|ˈwʊmən","women|ˈwɪmɪn","house|haʊs","home|həʊm|hoʊm","room|ruːm","door|dɔː|dɔːr",
-    "window|ˈwɪndəʊ|ˈwɪndoʊ","table|ˈteɪbl","chair|tʃeə|tʃer","garden|ˈɡɑːdn|ˈɡɑːrdn",
-    "city|ˈsɪti","country|ˈkʌntri","world|wɜːld|wɝːld","food|fuːd","bread|bred",
-    "butter|ˈbʌtə|ˈbʌtɚ","cheese|tʃiːz","chocolate|ˈtʃɒklət|ˈtʃɑːklət","coffee|ˈkɒfi|ˈkɔːfi",
-    "tea|tiː","milk|mɪlk","orange|ˈɒrɪndʒ|ˈɔːrɪndʒ","apple|ˈæpl","banana|bəˈnɑːnə|bəˈnænə",
-    "vegetable|ˈvedʒtəbl","sugar|ˈʃʊɡə|ˈʃʊɡɚ","salt|sɒlt|sɔːlt","breakfast|ˈbrekfəst","lunch|lʌntʃ",
-    "dinner|ˈdɪnə|ˈdɪnɚ","morning|ˈmɔːnɪŋ|ˈmɔːrnɪŋ","evening|ˈiːvnɪŋ","night|naɪt","today|təˈdeɪ",
-    "tomorrow|təˈmɒrəʊ|təˈmɑːroʊ","yesterday|ˈjestədeɪ|ˈjestɚdeɪ","monday|ˈmʌndeɪ",
-    "tuesday|ˈtjuːzdeɪ|ˈtuːzdeɪ","wednesday|ˈwenzdeɪ","thursday|ˈθɜːzdeɪ|ˈθɝːzdeɪ","friday|ˈfraɪdeɪ",
-    "saturday|ˈsætədeɪ|ˈsætɚdeɪ","sunday|ˈsʌndeɪ","summer|ˈsʌmə|ˈsʌmɚ","winter|ˈwɪntə|ˈwɪntɚ",
-    "weather|ˈweðə|ˈweðɚ","rain|reɪn","snow|snəʊ|snoʊ","sun|sʌn","moon|muːn","star|stɑː|stɑːr",
-    "sky|skaɪ","sea|siː","mountain|ˈmaʊntɪn|ˈmaʊntn","river|ˈrɪvə|ˈrɪvɚ","tree|triː",
-    "flower|ˈflaʊə|ˈflaʊɚ","animal|ˈænɪml","dog|dɒɡ|dɔːɡ","cat|kæt","bird|bɜːd|bɝːd","fish|fɪʃ",
-    "horse|hɔːs|hɔːrs","car|kɑː|kɑːr","bus|bʌs","train|treɪn","plane|pleɪn","road|rəʊd|roʊd",
-    "street|striːt","work|wɜːk|wɝːk","job|dʒɒb|dʒɑːb","money|ˈmʌni","time|taɪm","year|jɪə|jɪr",
-    "hour|ˈaʊə|ˈaʊɚ","minute|ˈmɪnɪt","week|wiːk","month|mʌnθ","number|ˈnʌmbə|ˈnʌmbɚ",
-    "colour|ˈkʌlə|ˈkʌlɚ","red|red","blue|bluː","green|ɡriːn","yellow|ˈjeləʊ|ˈjeloʊ","black|blæk",
-    "white|waɪt","purple|ˈpɜːpl|ˈpɝːpl","big|bɪɡ","small|smɔːl","long|lɒŋ|lɔːŋ","short|ʃɔːt|ʃɔːrt",
-    "good|ɡʊd","bad|bæd","happy|ˈhæpi","sad|sæd","beautiful|ˈbjuːtɪfl","comfortable|ˈkʌmftəbl|ˈkʌmfɚtəbl",
-    "difficult|ˈdɪfɪkəlt","easy|ˈiːzi","important|ɪmˈpɔːtnt|ɪmˈpɔːrtnt","interesting|ˈɪntrəstɪŋ",
-    "different|ˈdɪfrənt","famous|ˈfeɪməs","careful|ˈkeəfl|ˈkerfl","serious|ˈsɪəriəs|ˈsɪriəs",
-    "enough|ɪˈnʌf","through|θruː","thought|θɔːt|θɑːt","though|ðəʊ|ðoʊ","although|ɔːlˈðəʊ|ɔːlˈðoʊ",
-    "island|ˈaɪlənd","knife|naɪf","know|nəʊ|noʊ","write|raɪt","listen|ˈlɪsn","speak|spiːk","read|riːd",
-    "learn|lɜːn|lɝːn","teach|tiːtʃ","think|θɪŋk","walk|wɔːk|wɑːk","talk|tɔːk|tɑːk","run|rʌn",
-    "jump|dʒʌmp","sing|sɪŋ","dance|dɑːns|dæns","laugh|lɑːf|læf","love|lʌv","like|laɪk",
+    "the|ðə","and|ænd","are|ɑːr","you|juː","they|ðeɪ","was|wɒz|wʌz","were|wɜːr|wɝː",
+    "have|hæv","does|dʌz","of|ɒv|ʌv","for|fɔːr","with|wɪð","this|ðɪs","there|ðeər|ðer",
+    "here|hɪər|hɪr","what|wɒt|wʌt","where|weər|wer","who|huː","why|waɪ","how|haʊ","not|nɒt|nɑːt",
+    "would|wʊd","should|ʃʊd","could|kʊd",
+    "water|ˈwɔː.tər|ˈwɑː.tɚ","teacher|ˈtiː.tʃər|ˈtiː.tʃɚ","student|ˈstjuː.dənt|ˈstuː.dənt",
+    "school|skuːl","book|bʊk","pen|pen","paper|ˈpeɪ.pər|ˈpeɪ.pɚ",
+    "computer|kəmˈpjuː.tər|kəmˈpjuː.tɚ","phone|fəʊn|foʊn","music|ˈmjuː.zɪk",
+    "picture|ˈpɪk.tʃər|ˈpɪk.tʃɚ","language|ˈlæŋ.ɡwɪdʒ","word|wɜːd|wɝːd","sentence|ˈsen.təns",
+    "question|ˈkwes.tʃən","answer|ˈɑːn.sər|ˈæn.sɚ","problem|ˈprɒb.ləm|ˈprɑː.bləm",
+    "people|ˈpiː.pəl","person|ˈpɜː.sən|ˈpɝː.sən","family|ˈfæm.əl.i","mother|ˈmʌð.ər|ˈmʌð.ɚ",
+    "father|ˈfɑː.ðər|ˈfɑː.ðɚ","brother|ˈbrʌð.ər|ˈbrʌð.ɚ","sister|ˈsɪs.tər|ˈsɪs.tɚ","friend|frend",
+    "child|tʃaɪld","children|ˈtʃɪl.drən","man|mæn","woman|ˈwʊm.ən","women|ˈwɪm.ɪn","house|haʊs",
+    "home|həʊm|hoʊm","room|ruːm","door|dɔːr","window|ˈwɪn.dəʊ|ˈwɪn.doʊ","table|ˈteɪ.bəl",
+    "chair|tʃeər|tʃer","garden|ˈɡɑː.dən|ˈɡɑːr.dən","city|ˈsɪt.i","country|ˈkʌn.tri",
+    "world|wɜːld|wɝːld","food|fuːd","bread|bred","butter|ˈbʌt.ər|ˈbʌt̬.ɚ","cheese|tʃiːz",
+    "chocolate|ˈtʃɒk.lət|ˈtʃɑːk.lət","coffee|ˈkɒf.i|ˈkɑː.fi","tea|tiː","milk|mɪlk",
+    "orange|ˈɒr.ɪndʒ|ˈɔːr.ɪndʒ","apple|ˈæp.əl","banana|bəˈnɑː.nə|bəˈnæn.ə","vegetable|ˈvedʒ.tə.bəl",
+    "sugar|ˈʃʊɡ.ər|ˈʃʊɡ.ɚ","salt|sɒlt|sɑːlt","breakfast|ˈbrek.fəst","lunch|lʌntʃ",
+    "dinner|ˈdɪn.ər|ˈdɪn.ɚ","morning|ˈmɔː.nɪŋ|ˈmɔːr.nɪŋ","evening|ˈiːv.nɪŋ","night|naɪt",
+    "today|təˈdeɪ","tomorrow|təˈmɒr.əʊ|təˈmɑːr.oʊ","yesterday|ˈjes.tə.deɪ|ˈjes.tɚ.deɪ",
+    "monday|ˈmʌn.deɪ","tuesday|ˈtjuːz.deɪ|ˈtuːz.deɪ","wednesday|ˈwenz.deɪ",
+    "thursday|ˈθɜːz.deɪ|ˈθɝːz.deɪ","friday|ˈfraɪ.deɪ","saturday|ˈsæt.ə.deɪ|ˈsæt̬.ɚ.deɪ",
+    "sunday|ˈsʌn.deɪ","summer|ˈsʌm.ər|ˈsʌm.ɚ","winter|ˈwɪn.tər|ˈwɪn.tɚ","weather|ˈweð.ər|ˈweð.ɚ",
+    "rain|reɪn","snow|snəʊ|snoʊ","sun|sʌn","moon|muːn","star|stɑːr","sea|siː","sky|skaɪ",
+    "mountain|ˈmaʊn.tɪn|ˈmaʊn.tən","river|ˈrɪv.ər|ˈrɪv.ɚ","tree|triː","flower|flaʊər|ˈflaʊ.ɚ",
+    "animal|ˈæn.ɪ.məl","dog|dɒɡ|dɑːɡ","cat|kæt","bird|bɜːd|bɝːd","fish|fɪʃ","horse|hɔːs|hɔːrs",
+    "car|kɑːr","bus|bʌs","train|treɪn","plane|pleɪn","road|rəʊd|roʊd","street|striːt",
+    "work|wɜːk|wɝːk","job|dʒɒb|dʒɑːb","money|ˈmʌn.i","time|taɪm","year|jɪər|jɪr",
+    "hour|aʊər|ˈaʊ.ɚ","minute|ˈmɪn.ɪt","week|wiːk","month|mʌnθ","number|ˈnʌm.bər|ˈnʌm.bɚ",
+    "colour|ˈkʌl.ər|ˈkʌl.ɚ","red|red","blue|bluː","green|ɡriːn","yellow|ˈjel.əʊ|ˈjel.oʊ",
+    "black|blæk","white|waɪt","purple|ˈpɜː.pəl|ˈpɝː.pəl","big|bɪɡ","small|smɔːl|smɑːl",
+    "long|lɒŋ|lɑːŋ","short|ʃɔːt|ʃɔːrt","good|ɡʊd","bad|bæd","happy|ˈhæp.i","sad|sæd",
+    "beautiful|ˈbjuː.tɪ.fəl","comfortable|ˈkʌmf.tə.bəl|ˈkʌmf.tɚ.bəl","difficult|ˈdɪf.ɪ.kəlt",
+    "easy|ˈiː.zi","important|ɪmˈpɔː.tənt|ɪmˈpɔːr.tənt","interesting|ˈɪn.trəs.tɪŋ",
+    "different|ˈdɪf.ər.ənt","famous|ˈfeɪ.məs","careful|ˈkeə.fəl|ˈker.fəl","serious|ˈsɪə.ri.əs|ˈsɪr.i.əs",
+    "enough|ɪˈnʌf","through|θruː","thought|θɔːt|θɑːt","though|ðəʊ|ðoʊ","although|ɔːlˈðəʊ|ɑːlˈðoʊ",
+    "island|ˈaɪ.lənd","knife|naɪf","know|nəʊ|noʊ","write|raɪt","listen|ˈlɪs.ən","speak|spiːk",
+    "read|riːd","learn|lɜːn|lɝːn","teach|tiːtʃ","think|θɪŋk","walk|wɔːk|wɑːk","talk|tɔːk|tɑːk",
+    "run|rʌn","jump|dʒʌmp","sing|sɪŋ","dance|dɑːns|dæns","laugh|lɑːf|læf","love|lʌv","like|laɪk",
     "want|wɒnt|wɑːnt","need|niːd","make|meɪk","take|teɪk","give|ɡɪv","get|ɡet","come|kʌm",
-    "look|lʊk","see|siː","hear|hɪə|hɪr","feel|fiːl","usually|ˈjuːʒuəli","journey|ˈdʒɜːni|ˈdʒɝːni",
-    "measure|ˈmeʒə|ˈmeʒɚ","vision|ˈvɪʒn","decision|dɪˈsɪʒn","television|ˈtelɪvɪʒn","clothes|kləʊðz|kloʊðz",
-    "shoe|ʃuː","shirt|ʃɜːt|ʃɝːt","hair|heə|her","head|hed","hand|hænd","eye|aɪ","ear|ɪə|ɪr",
-    "mouth|maʊθ","nose|nəʊz|noʊz","tooth|tuːθ","foot|fʊt","leg|leɡ","heart|hɑːt|hɑːrt",
-    "doctor|ˈdɒktə|ˈdɑːktɚ","nurse|nɜːs|nɝːs","police|pəˈliːs","office|ˈɒfɪs|ˈɔːfɪs","company|ˈkʌmpəni",
-    "business|ˈbɪznəs","market|ˈmɑːkɪt|ˈmɑːrkɪt","shop|ʃɒp|ʃɑːp","store|stɔː|stɔːr",
-    "restaurant|ˈrestrɒnt|ˈrestərɑːnt","hotel|həʊˈtel|hoʊˈtel","hospital|ˈhɒspɪtl|ˈhɑːspɪtl",
-    "library|ˈlaɪbrəri|ˈlaɪbreri","university|ˌjuːnɪˈvɜːsəti|ˌjuːnɪˈvɝːsəti","science|ˈsaɪəns",
-    "history|ˈhɪstri","english|ˈɪŋɡlɪʃ","chinese|ˌtʃaɪˈniːz","photograph|ˈfəʊtəɡrɑːf|ˈfoʊtəɡræf",
-    "photography|fəˈtɒɡrəfi|fəˈtɑːɡrəfi","idea|aɪˈdɪə|aɪˈdiːə","example|ɪɡˈzɑːmpl|ɪɡˈzæmpl",
-    "sure|ʃʊə|ʃʊr","tour|tʊə|tʊr","poor|pɔː|pʊr","boy|bɔɪ","noise|nɔɪz","voice|vɔɪs","choice|tʃɔɪs",
+    "look|lʊk","see|siː","hear|hɪər|hɪr","feel|fiːl","usually|ˈjuː.ʒu.ə.li","journey|ˈdʒɜː.ni|ˈdʒɝː.ni",
+    "measure|ˈmeʒ.ər|ˈmeʒ.ɚ","vision|ˈvɪʒ.ən","decision|dɪˈsɪʒ.ən","television|ˈtel.ɪ.vɪʒ.ən",
+    "clothes|kləʊðz|kloʊðz","shoe|ʃuː","shirt|ʃɜːt|ʃɝːt","hair|heər|her","head|hed","hand|hænd",
+    "eye|aɪ","ear|ɪər|ɪr","mouth|maʊθ","nose|nəʊz|noʊz","tooth|tuːθ","foot|fʊt","leg|leɡ",
+    "heart|hɑːt|hɑːrt","doctor|ˈdɒk.tər|ˈdɑːk.tɚ","nurse|nɜːs|nɝːs","police|pəˈliːs",
+    "office|ˈɒf.ɪs|ˈɑː.fɪs","company|ˈkʌm.pə.ni","business|ˈbɪz.nɪs","market|ˈmɑː.kɪt|ˈmɑːr.kɪt",
+    "shop|ʃɒp|ʃɑːp","store|stɔːr","restaurant|ˈres.trɒnt|ˈres.tɚ.ɑːnt","hotel|həʊˈtel|hoʊˈtel",
+    "hospital|ˈhɒs.pɪ.təl|ˈhɑː.spɪ.təl","library|ˈlaɪ.brər.i|ˈlaɪ.brer.i",
+    "university|ˌjuː.nɪˈvɜː.sə.ti|ˌjuː.nɪˈvɝː.sə.ti","science|ˈsaɪ.əns","history|ˈhɪs.tər.i",
+    "english|ˈɪŋ.ɡlɪʃ","chinese|ˌtʃaɪˈniːz","photograph|ˈfəʊ.tə.ɡrɑːf|ˈfoʊ.tə.ɡræf",
+    "photography|fəˈtɒɡ.rə.fi|fəˈtɑː.ɡrə.fi","idea|aɪˈdɪə|aɪˈdiː.ə","example|ɪɡˈzɑːm.pəl|ɪɡˈzæm.pəl",
+    "sure|ʃɔːr|ʃʊr","tour|tʊər|tʊr","poor|pɔːr|pʊr","boy|bɔɪ","noise|nɔɪz","voice|vɔɪs","choice|tʃɔɪs",
     "ship|ʃɪp","sheep|ʃiːp","live|lɪv","leave|liːv","full|fʊl","fool|fuːl","cup|kʌp","hat|hæt",
     "hut|hʌt","bed|bed","bag|bæɡ","back|bæk","cold|kəʊld|koʊld","gold|ɡəʊld|ɡoʊld","goat|ɡəʊt|ɡoʊt",
     "coat|kəʊt|koʊt","cot|kɒt|kɑːt","caught|kɔːt|kɑːt","court|kɔːt|kɔːrt","girl|ɡɜːl|ɡɝːl","day|deɪ",
-    "my|maɪ","go|ɡəʊ|ɡoʊ","now|naʊ","yes|jes","van|væn","wine|waɪn","vine|vaɪn","very|ˈveri",
-    "berry|ˈberi","light|laɪt","right|raɪt","glass|ɡlɑːs|ɡlæs","grass|ɡrɑːs|ɡræs","three|θriː",
+    "my|maɪ","go|ɡəʊ|ɡoʊ","now|naʊ","yes|jes","van|væn","wine|waɪn","vine|vaɪn","very|ˈver.i",
+    "berry|ˈber.i","light|laɪt","right|raɪt","glass|ɡlɑːs|ɡlæs","grass|ɡrɑːs|ɡræs","three|θriː",
     "free|friː","thin|θɪn","sin|sɪn","thing|θɪŋ","sink|sɪŋk","sung|sʌŋ","ran|ræn","rang|ræŋ",
-    "cheap|tʃiːp","jeep|dʒiːp","share|ʃeə|ʃer","key|kiː","about|əˈbaʊt","hot|hɒt|hɑːt","pot|pɒt|pɑːt","zoo|zuː","pet|pet","sheet|ʃiːt"
+    "cheap|tʃiːp","jeep|dʒiːp","share|ʃeər|ʃer","key|kiː","about|əˈbaʊt","hot|hɒt|hɑːt",
+    "pot|pɒt|pɑːt","zoo|zuː","pet|pet","four|fɔːr","box|bɒks|bɑːks","behind|bɪˈhaɪnd","is|ɪz",
+    "pure|pjʊər|pjʊr","situation|ˌsɪtʃ.uˈeɪ.ʃən","influence|ˈɪn.flu.əns"
   ];
 
   const DICT = Object.create(null);
@@ -388,8 +394,10 @@
     ENTRIES.push(e);
   });
 
-  /* ============ IPA machinery ============ */
-  const MULTI = ["tʃ","dʒ","iː","ɑː","ɔː","uː","ɜː","ɝː","eɪ","aɪ","ɔɪ","əʊ","oʊ","aʊ","ɪə","eə","ʊə","ɪr","er","ʊr","ɚ"];
+  /* ======================================================================
+     2. Phoneme inventory and the chart grid
+     ====================================================================== */
+  const MULTI = ["tʃ","dʒ","iː","ɑː","ɔː","uː","ɜː","ɝː","eɪ","aɪ","ɔɪ","əʊ","oʊ","aʊ","ɪə","eə","ʊə","ɚ"];
   function tokenize(ipa) {
     const out = [];
     let i = 0;
@@ -400,23 +408,9 @@
     }
     return out;
   }
-  const stripStress = s => s.replace(/[ˈˌ.]/g, "");
+  // Stress marks, syllable dots and the US flap diacritic never count when checking an answer.
+  const stripMarks = s => s.replace(/[ˈˌ.̬̥̩]/g, "");
 
-  const CONFUSE = {
-    "iː":["ɪ","e"], "ɪ":["iː","e"], "e":["æ","ɪ"], "æ":["e","ʌ","ɑː"], "ʌ":["æ","ɑː","ɒ"],
-    "ɑː":["ʌ","æ","ɔː"], "ɒ":["ɔː","əʊ","ʌ"], "ɔː":["ɒ","əʊ","ɜː"], "ʊ":["uː","ə"], "uː":["ʊ","ʌ"],
-    "ɜː":["ə","ɔː"], "ɝː":["ɚ","ɔː"], "ɚ":["ə","ɝː"], "ə":["ʌ","ɜː"], "eɪ":["e","aɪ"],
-    "aɪ":["eɪ","ɔɪ"], "ɔɪ":["aɪ","ɔː"], "əʊ":["aʊ","ɔː","ɒ"], "oʊ":["aʊ","ɔː"], "aʊ":["əʊ","ɑː"],
-    "ɪə":["eə","iː"], "eə":["ɪə","e"], "ʊə":["ɔː","ʊ"],
-    "θ":["s","f","ð"], "ð":["z","d","θ"], "ʃ":["s","tʃ"], "ʒ":["dʒ","z"], "tʃ":["ʃ","dʒ"],
-    "dʒ":["tʃ","ʒ"], "s":["θ","z"], "z":["s","ð"], "f":["v","θ"], "v":["w","b","f"],
-    "ŋ":["n","m"], "n":["ŋ","m"], "m":["n"], "l":["r"], "r":["l","w"], "w":["v","r"],
-    "j":["dʒ"], "h":["f"], "p":["b"], "b":["p","v"], "t":["d"], "d":["t","ð"], "k":["ɡ"], "ɡ":["k"]
-  };
-
-  /* The 44 phonemes of English, laid out like the BBC / Sounds Right phonemic chart:
-     monophthongs in a 4x3 block (close to open), diphthongs beside them, consonants in
-     voiceless/voiced pairs across three rows. */
   const VOICELESS = ["p","t","tʃ","k","f","θ","s","ʃ","h"];
   const CONS_ROWS = [
     [["p","pen"],["b","bag"],["t","tea"],["d","dog"],["tʃ","cheese"],["dʒ","jump"],["k","key"],["ɡ","girl"]],
@@ -425,48 +419,449 @@
   ];
   const CHARTS = {
     gb: {
-      label: "RP 英式 · 44 音",
+      label: "UK · Cambridge notation",
       mono: [["iː","sheep"],["ɪ","ship"],["ʊ","book"],["uː","food"],
              ["e","bed"],["ə","about"],["ɜː","bird"],["ɔː","door"],
              ["æ","cat"],["ʌ","cup"],["ɑː","car"],["ɒ","hot"]],
       diph: [["ɪə","here"],["eɪ","day"],null,null,
              ["ʊə","tour"],["ɔɪ","boy"],["əʊ","go"],null,
              ["eə","hair"],["aɪ","my"],["aʊ","now"],null],
+      weak: [["i","happy"],["u","situation"]],
       cons: CONS_ROWS,
-      note: "英式 RP 的 44 個音：12 個單母音 + 8 個雙母音 + 24 個子音。"
+      note: "12 monophthongs + 8 diphthongs + 24 consonants = the 44 phonemes of British English."
     },
     us: {
-      label: "GA 美式",
+      label: "US · Cambridge notation",
       mono: [["iː","sheep"],["ɪ","ship"],["ʊ","book"],["uː","food"],
              ["e","bed"],["ə","about"],["ɝː","bird"],["ɔː","thought"],
              ["æ","cat"],["ʌ","cup"],["ɑː","hot"],["ɚ","teacher"]],
       diph: [["eɪ","day"],["aɪ","my"],["ɔɪ","boy"],null,
              ["oʊ","go"],["aʊ","now"],null,null],
+      weak: [["i","happy"],["u","situation"]],
       cons: CONS_ROWS,
-      note: "美式 GA 把 /ɒ/ 併入 /ɑː/，也沒有 /ɪə eə ʊə/：那些 r 音改用 /ɪr er ʊr/ 拼。"
+      note: "US English merges /ɒ/ into /ɑː/, has no /ɪə eə ʊə/ (they are written /ɪr er ʊr/), and adds the r-coloured /ɚ ɝː/."
     }
   };
 
-  /* ============ letter-to-sound fallback ============
-     Emits a neutral form with "ʳ" marking r-coloured spots, then renders per accent. */
+  /* ======================================================================
+     3. Articulation data — what the mouth does for each phoneme.
+        Vowels: f = frontness 0..1, h = tongue height 0..1, r = lip rounding 0..1.
+        Consonants: place + manner drive both the drawing and the description.
+     ====================================================================== */
+  const V = (f, h, r) => ({ f: f, h: h, r: r });
+  const SOUND = {
+    // monophthongs
+    "iː": { n: "Close front unrounded, long", a: { t: "v", v: V(1, 1, 0) }, ex: ["sheep", "tea", "key"] },
+    "ɪ":  { n: "Near-close near-front unrounded, short", a: { t: "v", v: V(.8, .78, 0) }, ex: ["ship", "big", "fish"] },
+    "e":  { n: "Mid front unrounded", a: { t: "v", v: V(.82, .52, 0) }, ex: ["bed", "red", "pen"] },
+    "æ":  { n: "Near-open front unrounded", a: { t: "v", v: V(.85, .18, 0) }, ex: ["cat", "bag", "hat"] },
+    "ʌ":  { n: "Open-mid back unrounded", a: { t: "v", v: V(.38, .3, 0) }, ex: ["cup", "sun", "jump"] },
+    "ɑː": { n: "Open back unrounded, long", a: { t: "v", v: V(.1, .1, 0) }, ex: ["car", "father", "glass"] },
+    "ɒ":  { n: "Open back rounded, short", a: { t: "v", v: V(.06, .18, .7) }, ex: ["hot", "dog", "box"] },
+    "ɔː": { n: "Open-mid back rounded, long", a: { t: "v", v: V(.06, .55, 1) }, ex: ["door", "four", "thought"] },
+    "ʊ":  { n: "Near-close near-back rounded", a: { t: "v", v: V(.26, .76, .7) }, ex: ["book", "full", "good"] },
+    "uː": { n: "Close back rounded, long", a: { t: "v", v: V(.1, .96, 1) }, ex: ["food", "moon", "shoe"] },
+    "ɜː": { n: "Mid central unrounded, long", a: { t: "v", v: V(.46, .5, 0) }, ex: ["bird", "girl", "work"] },
+    "ə":  { n: "Schwa — mid central, never stressed", a: { t: "v", v: V(.46, .45, 0) }, ex: ["about", "teacher", "water"] },
+    "ɚ":  { n: "R-coloured schwa (US)", a: { t: "v", v: V(.5, .5, .2), rhotic: 1 }, ex: ["teacher", "water", "winter"] },
+    "ɝː": { n: "R-coloured mid central, long (US)", a: { t: "v", v: V(.5, .55, .2), rhotic: 1 }, ex: ["bird", "girl", "work"] },
+    "i":  { n: "Weak close front — Cambridge's happY vowel", a: { t: "v", v: V(.95, .9, 0) }, ex: ["happy", "city", "money"] },
+    "u":  { n: "Weak close back — Cambridge's sitUation vowel", a: { t: "v", v: V(.15, .88, .8) }, ex: ["situation", "influence", "usually"] },
+    // diphthongs
+    "eɪ": { n: "Diphthong: glides from /e/ to /ɪ/", a: { t: "v", v: V(.82, .5, 0), g: V(.85, .8, 0) }, ex: ["day", "make", "train"] },
+    "aɪ": { n: "Diphthong: glides from /a/ to /ɪ/", a: { t: "v", v: V(.6, .1, 0), g: V(.85, .8, 0) }, ex: ["my", "light", "time"] },
+    "ɔɪ": { n: "Diphthong: glides from /ɔː/ to /ɪ/", a: { t: "v", v: V(.08, .5, 1), g: V(.85, .8, 0) }, ex: ["boy", "noise", "choice"] },
+    "əʊ": { n: "Diphthong: glides from /ə/ to /ʊ/", a: { t: "v", v: V(.45, .5, 0), g: V(.25, .8, .8) }, ex: ["go", "nose", "coat"] },
+    "oʊ": { n: "Diphthong: glides from /o/ to /ʊ/ (US)", a: { t: "v", v: V(.2, .6, .8), g: V(.2, .85, .9) }, ex: ["go", "nose", "coat"] },
+    "aʊ": { n: "Diphthong: glides from /a/ to /ʊ/", a: { t: "v", v: V(.6, .1, 0), g: V(.25, .8, .8) }, ex: ["now", "house", "mouth"] },
+    "ɪə": { n: "Diphthong: glides from /ɪ/ to /ə/", a: { t: "v", v: V(.8, .78, 0), g: V(.46, .45, 0) }, ex: ["here", "year", "ear"] },
+    "eə": { n: "Diphthong: glides from /e/ to /ə/", a: { t: "v", v: V(.82, .45, 0), g: V(.46, .45, 0) }, ex: ["hair", "chair", "share"] },
+    "ʊə": { n: "Diphthong: glides from /ʊ/ to /ə/", a: { t: "v", v: V(.26, .76, .7), g: V(.46, .45, 0) }, ex: ["tour", "pure", "sure"] },
+    // consonants
+    "p": { n: "Voiceless bilabial plosive", a: { t: "c", p: "bilabial", m: "plosive", vd: 0 }, ex: ["pen", "happy", "cup"] },
+    "b": { n: "Voiced bilabial plosive", a: { t: "c", p: "bilabial", m: "plosive", vd: 1 }, ex: ["bag", "about", "job"] },
+    "t": { n: "Voiceless alveolar plosive", a: { t: "c", p: "alveolar", m: "plosive", vd: 0 }, ex: ["tea", "water", "hat"] },
+    "d": { n: "Voiced alveolar plosive", a: { t: "c", p: "alveolar", m: "plosive", vd: 1 }, ex: ["dog", "red", "bed"] },
+    "tʃ": { n: "Voiceless postalveolar affricate", a: { t: "c", p: "postalveolar", m: "affricate", vd: 0 }, ex: ["cheese", "picture", "teach"] },
+    "dʒ": { n: "Voiced postalveolar affricate", a: { t: "c", p: "postalveolar", m: "affricate", vd: 1 }, ex: ["jump", "journey", "orange"] },
+    "k": { n: "Voiceless velar plosive", a: { t: "c", p: "velar", m: "plosive", vd: 0 }, ex: ["key", "back", "school"] },
+    "ɡ": { n: "Voiced velar plosive", a: { t: "c", p: "velar", m: "plosive", vd: 1 }, ex: ["girl", "bag", "go"] },
+    "f": { n: "Voiceless labiodental fricative", a: { t: "c", p: "labiodental", m: "fricative", vd: 0 }, ex: ["fish", "coffee", "laugh"] },
+    "v": { n: "Voiced labiodental fricative", a: { t: "c", p: "labiodental", m: "fricative", vd: 1 }, ex: ["van", "very", "love"] },
+    "θ": { n: "Voiceless dental fricative", a: { t: "c", p: "dental", m: "fricative", vd: 0 }, ex: ["think", "three", "mouth"] },
+    "ð": { n: "Voiced dental fricative", a: { t: "c", p: "dental", m: "fricative", vd: 1 }, ex: ["this", "mother", "clothes"] },
+    "s": { n: "Voiceless alveolar fricative", a: { t: "c", p: "alveolar", m: "fricative", vd: 0 }, ex: ["sun", "city", "house"] },
+    "z": { n: "Voiced alveolar fricative", a: { t: "c", p: "alveolar", m: "fricative", vd: 1 }, ex: ["zoo", "nose", "is"] },
+    "ʃ": { n: "Voiceless postalveolar fricative", a: { t: "c", p: "postalveolar", m: "fricative", vd: 0 }, ex: ["shoe", "sure", "fish"] },
+    "ʒ": { n: "Voiced postalveolar fricative", a: { t: "c", p: "postalveolar", m: "fricative", vd: 1 }, ex: ["measure", "vision", "usually"] },
+    "h": { n: "Voiceless glottal fricative", a: { t: "c", p: "glottal", m: "fricative", vd: 0 }, ex: ["house", "hair", "behind"] },
+    "m": { n: "Bilabial nasal (always voiced)", a: { t: "c", p: "bilabial", m: "nasal", vd: 1 }, ex: ["man", "summer", "home"] },
+    "n": { n: "Alveolar nasal (always voiced)", a: { t: "c", p: "alveolar", m: "nasal", vd: 1 }, ex: ["nose", "dinner", "run"] },
+    "ŋ": { n: "Velar nasal (always voiced)", a: { t: "c", p: "velar", m: "nasal", vd: 1 }, ex: ["sing", "think", "long"] },
+    "l": { n: "Alveolar lateral approximant", a: { t: "c", p: "alveolar", m: "lateral", vd: 1 }, ex: ["leg", "yellow", "full"] },
+    "r": { n: "Postalveolar approximant", a: { t: "c", p: "postalveolar", m: "approximant", vd: 1 }, ex: ["red", "right", "very"] },
+    "w": { n: "Labial–velar approximant", a: { t: "c", p: "labialvelar", m: "approximant", vd: 1 }, ex: ["wine", "we", "question"] },
+    "j": { n: "Palatal approximant", a: { t: "c", p: "palatal", m: "approximant", vd: 1 }, ex: ["yes", "year", "music"] }
+  };
+
+  const PLACE_NAME = {
+    bilabial: "Both lips press together",
+    labiodental: "Top teeth rest on the bottom lip",
+    dental: "Tongue tip between or against the top teeth",
+    alveolar: "Tongue tip on the ridge behind the top teeth",
+    postalveolar: "Tongue blade just behind that ridge",
+    palatal: "Tongue body against the hard palate",
+    velar: "Back of the tongue against the soft palate",
+    glottal: "No mouth closure — friction at the vocal folds",
+    labialvelar: "Rounded lips plus the tongue back raised"
+  };
+  const MANNER_NAME = {
+    plosive: "Air is stopped completely, then released in a burst",
+    fricative: "Air is squeezed through a narrow gap and hisses",
+    affricate: "A stop released slowly into friction",
+    nasal: "Mouth closed, soft palate down, air out through the nose",
+    lateral: "Tongue tip blocks the centre, air flows over the sides",
+    approximant: "Articulators come close, but not close enough to hiss"
+  };
+  const PLACE_PT = {
+    bilabial: [56, 150], labiodental: [64, 142], dental: [78, 134], alveolar: [92, 126],
+    postalveolar: [112, 120], palatal: [146, 108], velar: [196, 106], glottal: [228, 226], labialvelar: [56, 150]
+  };
+  const PLACE_TONGUE = {
+    bilabial: { f: .4, h: .35, tip: 0 }, labiodental: { f: .4, h: .35, tip: 0 },
+    dental: { f: .9, h: .55, tip: 1 }, alveolar: { f: .85, h: .6, tip: 1 },
+    postalveolar: { f: .78, h: .7, tip: .6 }, palatal: { f: .95, h: .9, tip: .15 },
+    velar: { f: .03, h: .97, tip: 0 }, glottal: { f: .4, h: .4, tip: 0 },
+    labialvelar: { f: .05, h: .9, tip: 0 }
+  };
+
+  /* ---- animated articulation ----
+     One parametric state drives both views; a per-sound timeline moves that state
+     from rest, into the articulation and back, on a loop.
+       front : the lips as a speaker sees them in a mirror — the shape to copy
+       side  : a schematic cross-section showing where the tongue goes */
+  const REST = {
+    f: .45, h: .4, tip: .05, round: 0, open: .3, vel: 0,
+    clos: 0, fric: 0, burst: 0, nasal: 0, fv: 0, th: 0, tv: .15
+  };
+  const stateWith = o => Object.assign({}, REST, o);
+  const lerp = (a, b, k) => a + (b - a) * k;
+
+  function vowelState(v, rhotic) {
+    const open = Math.max(.1, 1 - v.h);
+    return stateWith({ f: v.f, h: v.h, tip: rhotic ? .5 : .05, round: v.r, open: open, tv: open * .8 });
+  }
+  const CONS_FRONT = {
+    bilabial: { open: 0, round: .15, tv: 0 },
+    labiodental: { open: .12, round: 0, fv: 1, tv: 0 },
+    dental: { open: .26, round: 0, th: 1, tv: 1 },
+    alveolar: { open: .3, round: .1, tv: .9 },
+    postalveolar: { open: .3, round: .5, tv: .55 },
+    palatal: { open: .26, round: 0, tv: .5 },
+    velar: { open: .36, round: .05, tv: .2 },
+    glottal: { open: .5, round: .05, tv: .4 },
+    labialvelar: { open: .18, round: 1, tv: .1 }
+  };
+  function consState(p, m) {
+    const t = PLACE_TONGUE[p];
+    const fr = CONS_FRONT[p];
+    return stateWith(Object.assign({
+      f: t.f, h: t.h, tip: t.tip,
+      vel: m === "nasal" ? 1 : 0,
+      nasal: m === "nasal" ? 1 : 0
+    }, fr, m === "nasal" ? { open: 0, tv: 0 } : {}));
+  }
+  function timeline(sym) {
+    const a = SOUND[sym].a, K = [];
+    const at = (t, s) => K.push({ t: t, s: s });
+    if (a.t === "v") {
+      const A = vowelState(a.v, a.rhotic);
+      if (a.g) {
+        const B = vowelState(a.g, 0);
+        at(0, REST); at(320, A); at(640, A); at(1160, B); at(1460, B); at(1800, REST); at(2150, REST);
+      } else {
+        at(0, REST); at(340, A); at(1140, A); at(1480, REST); at(1850, REST);
+      }
+    } else {
+      const C = consState(a.p, a.m);
+      const mix = o => Object.assign({}, C, o);
+      if (a.m === "plosive") {
+        at(0, REST); at(260, mix({ clos: 1 })); at(640, mix({ clos: 1 }));
+        at(700, mix({ burst: 1, open: a.p === "bilabial" ? .3 : .42 })); at(850, mix({ open: a.p === "bilabial" ? .2 : .36 }));
+        at(1160, REST); at(1500, REST);
+      } else if (a.m === "affricate") {
+        at(0, REST); at(250, mix({ clos: 1 })); at(560, mix({ clos: 1 }));
+        at(650, mix({ fric: 1 })); at(1150, mix({ fric: 1 })); at(1460, REST); at(1800, REST);
+      } else if (a.m === "fricative") {
+        at(0, REST); at(280, mix({ fric: 1 })); at(1180, mix({ fric: 1 })); at(1480, REST); at(1800, REST);
+      } else if (a.m === "nasal") {
+        at(0, REST); at(300, mix({ clos: 1 })); at(1100, mix({ clos: 1 })); at(1420, REST); at(1750, REST);
+      } else {
+        at(0, REST); at(320, C); at(1020, C); at(1340, REST); at(1700, REST);
+      }
+    }
+    return K;
+  }
+  function sampleTimeline(K, t) {
+    const end = K[K.length - 1].t;
+    const x = ((t % end) + end) % end;
+    let i = 0;
+    while (i < K.length - 2 && K[i + 1].t <= x) i++;
+    const a = K[i], b = K[i + 1];
+    const k = b.t === a.t ? 0 : (x - a.t) / (b.t - a.t);
+    const e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    const out = {};
+    Object.keys(REST).forEach(key => { out[key] = lerp(a.s[key], b.s[key], e); });
+    return out;
+  }
+
+  /* ---- front view: the lips ---- */
+  function frontPaths(s) {
+    const cx = 150, cy = 158;
+    const W = 68 - s.round * 24;
+    const A = 3 + s.open * 38;
+    const UT = 11 + s.round * 6, LT = 13 + s.round * 7;
+    const L = cx - W, R = cx + W;
+    const t = cy - A / 2, b = cy + A / 2;
+    const innerTop = "C " + (L + 16) + "," + (t + 1) + " " + (cx - 15) + "," + t + " " + cx + "," + t
+      + " C " + (cx + 15) + "," + t + " " + (R - 16) + "," + (t + 1) + " " + R + "," + cy;
+    const innerBottomBack = "C " + (R - 16) + "," + (b - 1) + " " + (cx + 15) + "," + b + " " + cx + "," + b
+      + " C " + (cx - 15) + "," + b + " " + (L + 16) + "," + (b - 1) + " " + L + "," + cy;
+    return {
+      // Outer edge over the cupid's bow, then back along the inner edge of the aperture.
+      upper: "M " + L + "," + cy
+        + " C " + (L + 11) + "," + (t - UT + 3) + " " + (cx - 21) + "," + (t - UT - 3) + " " + cx + "," + (t - UT + 4)
+        + " C " + (cx + 21) + "," + (t - UT - 3) + " " + (R - 11) + "," + (t - UT + 3) + " " + R + "," + cy
+        + " C " + (R - 16) + "," + (t + 1) + " " + (cx + 15) + "," + t + " " + cx + "," + t
+        + " C " + (cx - 15) + "," + t + " " + (L + 16) + "," + (t + 1) + " " + L + "," + cy + " Z",
+      lower: "M " + L + "," + cy
+        + " C " + (L + 16) + "," + (b - 1) + " " + (cx - 15) + "," + b + " " + cx + "," + b
+        + " C " + (cx + 15) + "," + b + " " + (R - 16) + "," + (b - 1) + " " + R + "," + cy
+        + " C " + (R - 11) + "," + (b + LT - 3) + " " + (cx + 21) + "," + (b + LT + 3) + " " + cx + "," + (b + LT)
+        + " C " + (cx - 21) + "," + (b + LT + 3) + " " + (L + 11) + "," + (b + LT - 3) + " " + L + "," + cy + " Z",
+      inner: "M " + L + "," + cy + " " + innerTop + " " + innerBottomBack + " Z",
+      teethU: { x: L + 9, y: lerp(t, cy - 12, s.fv), w: Math.max(0, 2 * W - 18) },
+      teethL: { x: L + 11, y: b - 11, w: Math.max(0, 2 * W - 22) },
+      tongue: { cx: cx, cy: lerp(b - 5, cy + 1, s.th), rx: W * .56, ry: 7 + s.open * 5 },
+      A: A
+    };
+  }
+  function frontSVG() {
+    return '<svg class="vt" id="vtFront" viewBox="0 0 300 272" role="img" aria-label="Animated front view of the lips">'
+      + "<defs>"
+      + '<linearGradient id="skinG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0cdb6"/><stop offset="1" stop-color="#dfae95"/></linearGradient>'
+      + '<linearGradient id="lipUG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9655f"/><stop offset="1" stop-color="#9c4a46"/></linearGradient>'
+      + '<linearGradient id="lipLG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8766c"/><stop offset="1" stop-color="#a95349"/></linearGradient>'
+      + '<radialGradient id="innerG" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#4a1418"/><stop offset="1" stop-color="#23080b"/></radialGradient>'
+      + '<clipPath id="mouthClip"><path id="vtClipPath" d=""/></clipPath>'
+      + "</defs>"
+      + '<rect x="0" y="0" width="300" height="272" rx="14" fill="url(#skinG)"/>'
+      + '<ellipse cx="150" cy="238" rx="62" ry="20" fill="#cf9c84" opacity="0.45"/>'
+      // nose base and philtrum, so the lips read as part of a face
+      + '<path d="M 118,62 Q 150,30 182,62 Q 168,74 150,74 Q 132,74 118,62 Z" fill="#e7bda4" opacity="0.75"/>'
+      + '<ellipse cx="134" cy="66" rx="6" ry="4" fill="#b78568" opacity="0.5"/>'
+      + '<ellipse cx="166" cy="66" rx="6" ry="4" fill="#b78568" opacity="0.5"/>'
+      + '<path d="M 144,78 q 6,14 0,26 M 156,78 q -6,14 0,26" fill="none" stroke="#cf9c84" stroke-width="2.5" opacity="0.4"/>'
+      + '<path id="vtFInner" d="" fill="url(#innerG)"/>'
+      + '<g clip-path="url(#mouthClip)">'
+      + '<rect id="vtFTeethU" x="0" y="0" width="0" height="13" rx="3" fill="#f6f2ea"/>'
+      + '<rect id="vtFTeethL" x="0" y="0" width="0" height="11" rx="3" fill="#ece7dd"/>'
+      + '<ellipse id="vtFTongue" cx="150" cy="170" rx="30" ry="9" fill="#c9706c"/>'
+      + "</g>"
+      + '<path id="vtFLipU" d="" fill="url(#lipUG)"/>'
+      + '<path id="vtFLipL" d="" fill="url(#lipLG)"/>'
+      + '<ellipse id="vtFShine" cx="168" cy="178" rx="14" ry="4" fill="#ffffff" opacity="0.18"/>'
+      + '<text x="150" y="262" text-anchor="middle" font-size="10" fill="#8a5f4c">front view — copy this lip shape</text>'
+      + "</svg>";
+  }
+
+  /* ---- side view: the vocal tract ---- */
+  function tonguePath(f, h, tip) {
+    const tipX = 84, tipY = 170 - tip * 44;
+    const hx = 180 - 72 * f, hy = 188 - 80 * h;
+    return "M " + tipX + "," + tipY.toFixed(1)
+      + " Q " + (tipX + 14) + "," + (tipY - 3 + (hy - tipY) * .2).toFixed(1) + " " + hx.toFixed(1) + "," + hy.toFixed(1)
+      + " Q " + ((hx + 204) / 2).toFixed(1) + "," + (hy + 14).toFixed(1) + " 206,200"
+      + " L 212,214 Q 150,212 " + (tipX + 4) + "," + (tipY + 22).toFixed(1) + " Z";
+  }
+  function velumPath(v) {
+    const ex = lerp(233, 211, v), ey = lerp(116, 152, v);
+    const cx = lerp(224, 216, v), cy = lerp(101, 120, v);
+    return "M 200,102 Q " + cx.toFixed(1) + "," + cy.toFixed(1) + " " + ex.toFixed(1) + "," + ey.toFixed(1);
+  }
+  function sideSVG(sym) {
+    const a = SOUND[sym].a;
+    const pt = a.t === "c" ? PLACE_PT[a.p] : [0, 0];
+    let waves = "";
+    for (let i = 0; i < 3; i++) waves += '<path d="M ' + (i * 7) + ',-6 q 4,5 0,10" fill="none" stroke="var(--err)" stroke-width="1.8" opacity="0.85"/>';
+    return '<svg class="vt" id="vtSide" viewBox="0 0 300 272" role="img" aria-label="Animated side view of the mouth" hidden>'
+      + '<defs><marker id="vtArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">'
+      + '<path d="M 0,0 L 10,5 L 0,10 z" fill="var(--accent)"/></marker></defs>'
+      + '<path d="M 58,68 L 206,66 Q 232,70 234,94 L 228,104 Q 200,98 160,96 Q 110,100 72,112 L 58,98 Z" fill="var(--skin)" stroke="var(--line)" stroke-width="1.4"/>'
+      + '<path d="M 72,128 Q 110,108 168,100 L 200,102 Q 224,110 234,124 L 236,228 Q 212,220 200,212 Q 150,198 110,186 L 76,172 Z" fill="var(--surface)" stroke="var(--line)" stroke-width="1.4"/>'
+      + '<path d="M 68,112 L 80,114 L 80,132 L 70,130 Z" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/>'
+      + '<path d="M 68,172 L 80,168 L 80,150 L 70,152 Z" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/>'
+      + '<path id="vtLipU" d="M 46,100 Q 32,116 40,134 L 68,132 L 70,104 Z" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>'
+      + '<path id="vtLipL" d="M 40,178 Q 32,160 46,148 L 70,152 L 68,180 Z" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>'
+      + '<path id="vtVelum" d="' + velumPath(0) + '" fill="none" stroke="var(--ink)" stroke-width="5" stroke-linecap="round" opacity="0.6"/>'
+      + '<path id="vtAirO" d="M 224,216 C 218,186 200,172 150,166 L 78,152" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#vtArrow)"/>'
+      + '<path id="vtAirN" d="M 224,216 C 220,170 216,110 180,86 L 70,82" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#vtArrow)" opacity="0"/>'
+      + '<path id="vtTongue" d="' + tonguePath(REST.f, REST.h, REST.tip) + '" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.2"/>'
+      + '<circle id="vtBurst" cx="' + pt[0] + '" cy="' + pt[1] + '" r="4" fill="none" stroke="var(--err)" stroke-width="2" opacity="0"/>'
+      + '<circle id="vtClos" cx="' + pt[0] + '" cy="' + pt[1] + '" r="6" fill="var(--err)" opacity="0"/>'
+      + '<g id="vtFric" transform="translate(' + (pt[0] + 11) + ',' + (pt[1] + 5) + ')" opacity="0">' + waves + "</g>"
+      + '<circle id="vtLarynx" cx="226" cy="238" r="11" fill="none" stroke="var(--ochre)" stroke-width="2"/>'
+      + '<text id="vtVoice" x="226" y="264" text-anchor="middle" font-size="9" fill="var(--muted)">voiceless</text>'
+      + '<text x="150" y="86" text-anchor="middle" font-size="9" fill="var(--muted)">nasal cavity</text>'
+      + '<text x="294" y="268" text-anchor="end" font-size="9" fill="var(--muted)">schematic — lips on the left</text>'
+      + "</svg>";
+  }
+
+  function diagramHTML(sym) {
+    return frontSVG() + sideSVG(sym)
+      + '<div class="row" style="margin-top:10px">'
+      + '<div class="seg" role="group" aria-label="View">'
+      + '<button type="button" id="vtViewF" aria-pressed="true">Front</button>'
+      + '<button type="button" id="vtViewS" aria-pressed="false">Side</button>'
+      + "</div>"
+      + '<button class="btn" type="button" id="vtPlay">⏸ Pause</button>'
+      + '<button class="btn" type="button" id="vtSay">▶ Hear it</button>'
+      + "</div>";
+  }
+
+  /* ---- the animation loop ---- */
+  const anim = { raf: 0, start: 0, sym: null, playing: false, keys: null, voiced: 0, px: 0, py: 0, els: null };
+  function cacheEls() {
+    const g = id => document.getElementById(id);
+    anim.els = {
+      front: g("vtFront"), side: g("vtSide"),
+      fLipU: g("vtFLipU"), fLipL: g("vtFLipL"), fInner: g("vtFInner"), fClip: g("vtClipPath"),
+      fTeethU: g("vtFTeethU"), fTeethL: g("vtFTeethL"), fTongue: g("vtFTongue"), fShine: g("vtFShine"),
+      tongue: g("vtTongue"), lipU: g("vtLipU"), lipL: g("vtLipL"), velum: g("vtVelum"),
+      airO: g("vtAirO"), airN: g("vtAirN"), clos: g("vtClos"), fric: g("vtFric"), burst: g("vtBurst"),
+      larynx: g("vtLarynx"), voice: g("vtVoice")
+    };
+  }
+  function drawState(s, ms) {
+    const e = anim.els;
+    if (!e || !e.fLipU) return;
+
+    // front view
+    const p = frontPaths(s);
+    e.fLipU.setAttribute("d", p.upper);
+    e.fLipL.setAttribute("d", p.lower);
+    e.fInner.setAttribute("d", p.inner);
+    e.fClip.setAttribute("d", p.inner);
+    e.fTeethU.setAttribute("x", p.teethU.x.toFixed(1));
+    e.fTeethU.setAttribute("y", p.teethU.y.toFixed(1));
+    e.fTeethU.setAttribute("width", p.teethU.w.toFixed(1));
+    e.fTeethL.setAttribute("x", p.teethL.x.toFixed(1));
+    e.fTeethL.setAttribute("y", p.teethL.y.toFixed(1));
+    e.fTeethL.setAttribute("width", p.teethL.w.toFixed(1));
+    e.fTongue.setAttribute("cx", p.tongue.cx.toFixed(1));
+    e.fTongue.setAttribute("cy", p.tongue.cy.toFixed(1));
+    e.fTongue.setAttribute("rx", p.tongue.rx.toFixed(1));
+    e.fTongue.setAttribute("ry", p.tongue.ry.toFixed(1));
+    e.fTongue.setAttribute("opacity", Math.max(s.tv, s.th).toFixed(2));
+    e.fShine.setAttribute("cy", (158 + p.A / 2 + 14).toFixed(1));
+    e.fShine.setAttribute("opacity", (0.1 + s.round * 0.14).toFixed(2));
+
+    // side view
+    e.tongue.setAttribute("d", tonguePath(s.f, s.h, s.tip));
+    e.velum.setAttribute("d", velumPath(s.vel));
+    const dx = (-s.round * 8).toFixed(1);
+    e.lipU.setAttribute("transform", "translate(" + dx + ",0)");
+    e.lipL.setAttribute("transform", "translate(" + dx + "," + (s.open * 10).toFixed(1) + ")");
+    e.clos.setAttribute("opacity", s.clos.toFixed(2));
+    e.fric.setAttribute("opacity", s.fric.toFixed(2));
+    e.burst.setAttribute("opacity", s.burst.toFixed(2));
+    e.burst.setAttribute("r", (4 + s.burst * 13).toFixed(1));
+    e.airN.setAttribute("opacity", s.nasal.toFixed(2));
+    e.airO.setAttribute("opacity", (1 - s.nasal).toFixed(2));
+    const flow = (ms / 60) % 10;
+    e.airO.setAttribute("stroke-dashoffset", (-flow).toFixed(1));
+    e.airN.setAttribute("stroke-dashoffset", (-flow).toFixed(1));
+    if (s.fric > .05) e.fric.setAttribute("transform", "translate(" + (anim.px + 11 + Math.sin(ms / 70) * 1.6).toFixed(1) + "," + (anim.py + 5) + ")");
+    if (anim.voiced) {
+      e.larynx.setAttribute("fill", "var(--ochre)");
+      e.larynx.setAttribute("r", (11 + Math.sin(ms / 90) * 1.6).toFixed(2));
+      e.voice.textContent = "voiced";
+    } else {
+      e.larynx.setAttribute("fill", "none");
+      e.larynx.setAttribute("r", "11");
+      e.voice.textContent = "voiceless";
+    }
+  }
+  function frame(now) {
+    if (!anim.playing) return;
+    const ms = now - anim.start;
+    drawState(sampleTimeline(anim.keys, ms), ms);
+    anim.raf = requestAnimationFrame(frame);
+  }
+  function setPlayLabel(playing) {
+    const b = document.getElementById("vtPlay");
+    if (b) b.textContent = playing ? "⏸ Pause" : "▶ Play";
+  }
+  function stopAnim() {
+    anim.playing = false;
+    if (anim.raf) cancelAnimationFrame(anim.raf);
+    anim.raf = 0;
+  }
+  function startAnim(sym) {
+    stopAnim();
+    const a = SOUND[sym].a;
+    anim.sym = sym;
+    anim.keys = timeline(sym);
+    anim.voiced = a.t === "v" ? 1 : a.vd;
+    const pt = a.t === "c" ? PLACE_PT[a.p] : [0, 0];
+    anim.px = pt[0]; anim.py = pt[1];
+    cacheEls();
+    setView(anim.view || "front");
+    const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      drawState(sampleTimeline(anim.keys, anim.keys[2] ? anim.keys[2].t : 400), 0);
+      setPlayLabel(false);
+      return;
+    }
+    anim.playing = true;
+    anim.start = performance.now();
+    anim.raf = requestAnimationFrame(frame);
+    setPlayLabel(true);
+  }
+  function setView(v) {
+    anim.view = v;
+    const e = anim.els;
+    if (!e || !e.front) return;
+    e.front.hidden = v !== "front";
+    e.side.hidden = v !== "side";
+    const bf = document.getElementById("vtViewF"), bs = document.getElementById("vtViewS");
+    if (bf) bf.setAttribute("aria-pressed", String(v === "front"));
+    if (bs) bs.setAttribute("aria-pressed", String(v === "side"));
+    if (!anim.playing) drawState(sampleTimeline(anim.keys, anim.keys[2] ? anim.keys[2].t : 400), 0);
+  }
+  function toggleAnim() {
+    if (anim.playing) { stopAnim(); setPlayLabel(false); }
+    else if (anim.sym) { anim.playing = true; anim.start = performance.now(); anim.raf = requestAnimationFrame(frame); setPlayLabel(true); }
+  }
+
+  /* ======================================================================
+     4. Letter-to-sound fallback for words outside the dictionary.
+        "ʳ" marks an r-coloured spot and is rendered per accent.
+     ====================================================================== */
   const RULES = [
-    // three+ letter clusters and endings first
     [/^tion\b/, "ʃən"], [/^sion\b/, "ʒən"], [/^ssion\b/, "ʃən"], [/^cious\b/, "ʃəs"], [/^tious\b/, "ʃəs"],
     [/^ture\b/, "tʃəʳ"], [/^sure\b/, "ʒəʳ"], [/^ought\b/, "ɔːt"], [/^aught\b/, "ɔːt"],
-    [/^eigh/, "eɪ"], [/^ight/, "aɪt"],
-    [/^tch/, "tʃ"], [/^dge/, "dʒ"],
+    [/^eigh/, "eɪ"], [/^ight/, "aɪt"], [/^tch/, "tʃ"], [/^dge/, "dʒ"],
     [/^air/, "eəʳ"], [/^are\b/, "eəʳ"], [/^ear\b/, "ɪəʳ"], [/^eer/, "ɪəʳ"], [/^ere\b/, "ɪəʳ"],
     [/^oor/, "ɔːʳ"], [/^our\b/, "aʊəʳ"], [/^our/, "ɜːʳ"], [/^ure\b/, "jʊəʳ"],
     [/^ar/, "ɑːʳ"], [/^or/, "ɔːʳ"], [/^er\b/, "əʳ"], [/^er/, "ɜːʳ"], [/^ir/, "ɜːʳ"], [/^ur/, "ɜːʳ"],
     [/^ch/, "tʃ"], [/^sh/, "ʃ"], [/^th/, "θ"], [/^ph/, "f"], [/^wh/, "w"], [/^ck/, "k"],
     [/^qu/, "kw"], [/^wr/, "r"], [/^kn/, "n"], [/^gn\b/, "n"], [/^mb\b/, "m"], [/^ng/, "ŋ"],
-    [/^ee/, "iː"], [/^ea/, "iː"], [/^oo/, "uː"], [/^ou/, "aʊ"], [/^ow\b/, "aʊ"], [/^ow/, "aʊ"],
+    [/^ee/, "iː"], [/^ea/, "iː"], [/^oo/, "uː"], [/^ou/, "aʊ"], [/^ow/, "aʊ"],
     [/^oi/, "ɔɪ"], [/^oy/, "ɔɪ"], [/^ai/, "eɪ"], [/^ay/, "eɪ"], [/^au/, "ɔː"], [/^aw/, "ɔː"],
     [/^ew/, "juː"], [/^oa/, "əʊ"], [/^ie\b/, "aɪ"], [/^ie/, "iː"], [/^ei/, "eɪ"], [/^ue\b/, "uː"],
-    // magic e
     [/^a(?=[^aeiou]e\b)/, "eɪ"], [/^i(?=[^aeiou]e\b)/, "aɪ"], [/^o(?=[^aeiou]e\b)/, "əʊ"],
     [/^u(?=[^aeiou]e\b)/, "juː"], [/^e(?=[^aeiou]e\b)/, "iː"],
-    // single letters
     [/^c(?=[eiy])/, "s"], [/^c/, "k"], [/^g(?=[eiy])/, "dʒ"], [/^g/, "ɡ"],
     [/^x/, "ks"], [/^y\b/, "i"], [/^y(?=[aeiou])/, "j"], [/^y/, "ɪ"],
     [/^e\b/, ""], [/^a/, "æ"], [/^e/, "e"], [/^i/, "ɪ"], [/^o/, "ɒ"], [/^u/, "ʌ"],
@@ -476,8 +871,7 @@
   ];
   function guessNeutral(word) {
     let s = word.toLowerCase().replace(/[^a-z]/g, "");
-    let out = "";
-    let guard = 0;
+    let out = "", guard = 0;
     while (s.length && guard++ < 60) {
       let matched = false;
       for (let i = 0; i < RULES.length; i++) {
@@ -488,16 +882,17 @@
     }
     return out;
   }
-  const US_MAP = [["ɜːʳ","ɝː"],["əʳ","ɚ"],["ɑːʳ","ɑːr"],["ɔːʳ","ɔːr"],["eəʳ","er"],["ɪəʳ","ɪr"],["aʊəʳ","aʊɚ"],["jʊəʳ","jʊr"],["ʳ","r"],["ɒ","ɑː"],["əʊ","oʊ"]];
-  const GB_MAP = [["ʳ",""]];
+  const US_MAP = [["ɜːʳ", "ɝː"], ["əʳ", "ɚ"], ["ɑːʳ", "ɑːr"], ["ɔːʳ", "ɔːr"], ["eəʳ", "er"], ["ɪəʳ", "ɪr"], ["aʊəʳ", "aʊɚ"], ["jʊəʳ", "jʊr"], ["ʳ", "r"], ["ɒ", "ɑː"], ["əʊ", "oʊ"]];
+  const GB_MAP = [["ɜːʳ", "ɜː"], ["ʳ", "r"]];
   function renderNeutral(neutral, acc) {
     let s = neutral;
-    const map = acc === "us" ? US_MAP : GB_MAP;
-    map.forEach(p => { s = s.split(p[0]).join(p[1]); });
+    (acc === "us" ? US_MAP : GB_MAP).forEach(p => { s = s.split(p[0]).join(p[1]); });
     return s;
   }
 
-  /* ============ helpers ============ */
+  /* ======================================================================
+     5. Helpers, state, speech
+     ====================================================================== */
   const $ = s => document.querySelector(s);
   const rnd = n => Math.floor(Math.random() * n);
   const pick = a => a[rnd(a.length)];
@@ -508,14 +903,25 @@
   const ipaOf = e => accent === "us" ? e.us : e.gb;
   const chart = () => CHARTS[accent];
   function allCells() {
-    const c = chart();
-    const out = [];
-    c.mono.concat(c.diph).forEach(i => { if (i) out.push(i); });
+    const c = chart(), out = [];
+    c.mono.concat(c.diph).concat(c.weak).forEach(i => { if (i) out.push(i); });
     c.cons.forEach(r => r.forEach(i => out.push(i)));
     return out;
   }
   const symbols = () => { const o = []; allCells().forEach(i => { if (o.indexOf(i[0]) < 0) o.push(i[0]); }); return o; };
+  function exampleFor(sym) { const hit = allCells().filter(i => i[0] === sym)[0]; return hit ? hit[1] : null; }
 
+  const CONFUSE = {
+    "iː": ["ɪ", "e"], "ɪ": ["iː", "e"], "e": ["æ", "ɪ"], "æ": ["e", "ʌ", "ɑː"], "ʌ": ["æ", "ɑː", "ɒ"],
+    "ɑː": ["ʌ", "æ", "ɔː"], "ɒ": ["ɔː", "əʊ", "ʌ"], "ɔː": ["ɒ", "əʊ", "ɜː"], "ʊ": ["uː", "ə"], "uː": ["ʊ", "ʌ"],
+    "ɜː": ["ə", "ɔː"], "ɝː": ["ɚ", "ɔː"], "ɚ": ["ə", "ɝː"], "ə": ["ʌ", "ɜː"], "eɪ": ["e", "aɪ"],
+    "aɪ": ["eɪ", "ɔɪ"], "ɔɪ": ["aɪ", "ɔː"], "əʊ": ["aʊ", "ɔː", "ɒ"], "oʊ": ["aʊ", "ɔː"], "aʊ": ["əʊ", "ɑː"],
+    "ɪə": ["eə", "iː"], "eə": ["ɪə", "e"], "ʊə": ["ɔː", "ʊ"], "i": ["iː", "ɪ"], "u": ["uː", "ʊ"],
+    "θ": ["s", "f", "ð"], "ð": ["z", "d", "θ"], "ʃ": ["s", "tʃ"], "ʒ": ["dʒ", "z"], "tʃ": ["ʃ", "dʒ"],
+    "dʒ": ["tʃ", "ʒ"], "s": ["θ", "z"], "z": ["s", "ð"], "f": ["v", "θ"], "v": ["w", "b", "f"],
+    "ŋ": ["n", "m"], "n": ["ŋ", "m"], "m": ["n"], "l": ["r"], "r": ["l", "w"], "w": ["v", "r"],
+    "j": ["dʒ"], "h": ["f"], "p": ["b"], "b": ["p", "v"], "t": ["d"], "d": ["t", "ð"], "k": ["ɡ"], "ɡ": ["k"]
+  };
   function makeDistractor(ipa, used) {
     const toks = tokenize(ipa);
     const idxs = shuffle(toks.map((t, i) => i).filter(i => CONFUSE[toks[i]]));
@@ -527,14 +933,13 @@
     return null;
   }
 
-  /* ============ speech ============ */
   let voices = [];
   function loadVoices() { if ("speechSynthesis" in window) voices = speechSynthesis.getVoices() || []; }
   if ("speechSynthesis" in window) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
   function voiceFor(acc) {
     if (!voices.length) loadVoices();
     const want = acc === "us" ? /en[-_]US/i : /en[-_]GB/i;
-    return voices.find(v => want.test(v.lang)) || voices.find(v => /^en/i.test(v.lang)) || null;
+    return voices.filter(v => want.test(v.lang))[0] || voices.filter(v => /^en/i.test(v.lang))[0] || null;
   }
   function say(text, rate) {
     if (!("speechSynthesis" in window)) return false;
@@ -549,31 +954,94 @@
     } catch (e) { return false; }
   }
   function speechNote() {
-    if (!("speechSynthesis" in window)) return "這個瀏覽器沒有語音合成，聽力題會顯示文字提示。";
+    if (!("speechSynthesis" in window)) return "This browser has no speech synthesis, so the listening modes will show the word instead.";
     const v = voiceFor(accent);
-    if (!v) return "系統還沒載入英語語音，第一次點擊後可能需要再按一次。";
-    if (accent === "us" && !/en[-_]US/i.test(v.lang)) return "系統沒有美式英語語音，改用 " + v.lang + " 發音；音標仍是美式標註。";
-    if (accent === "gb" && !/en[-_]GB/i.test(v.lang)) return "系統沒有英式英語語音，改用 " + v.lang + " 發音；音標仍是英式標註。";
-    return "發音語音：" + v.name + "（" + v.lang + "）。語音合成唸不出孤立音素，點格子聽到的是完整例字。";
+    if (!v) return "No English voice has loaded yet — tap a cell again in a moment.";
+    const tag = accent === "us" ? "en-US" : "en-GB";
+    if (accent === "us" ? !/en[-_]US/i.test(v.lang) : !/en[-_]GB/i.test(v.lang)) {
+      return "No " + tag + " voice is installed, so playback uses " + v.lang + "; the transcriptions stay " + (accent === "us" ? "American" : "British") + ".";
+    }
+    return "Voice: " + v.name + " (" + v.lang + "). Speech synthesis cannot pronounce a phoneme on its own, so a cell plays its example word.";
   }
 
-  /* ============ score ============ */
   const state = { right: 0, total: 0, streak: 0, best: 0 };
-  try { const r = localStorage.getItem("soundlab.v2"); if (r) { const s = JSON.parse(r); if (s && typeof s.right === "number") { state.right = s.right; state.total = s.total; state.best = s.best || 0; } } } catch (e) {}
+  try { const r = localStorage.getItem("soundlab.v3"); if (r) { const s = JSON.parse(r); if (s && typeof s.right === "number") { state.right = s.right; state.total = s.total; state.best = s.best || 0; } } } catch (e) {}
   function paintScore() {
     $("#scoreNum").textContent = state.right + " / " + state.total;
-    $("#streakTxt").textContent = "連對 " + state.streak + (state.best ? "・最佳 " + state.best : "");
+    $("#streakTxt").textContent = "streak " + state.streak + (state.best ? " · best " + state.best : "");
     $("#meterBar").style.width = (state.total ? Math.round(state.right / state.total * 100) : 0) + "%";
   }
   function mark(ok) {
     state.total++;
     if (ok) { state.right++; state.streak++; if (state.streak > state.best) state.best = state.streak; } else state.streak = 0;
-    try { localStorage.setItem("soundlab.v2", JSON.stringify({ right: state.right, total: state.total, best: state.best })); } catch (e) {}
+    try { localStorage.setItem("soundlab.v3", JSON.stringify({ right: state.right, total: state.total, best: state.best })); } catch (e) {}
     paintScore();
   }
   paintScore();
 
-  /* ============ chart ============ */
+  /* ======================================================================
+     6. Sound panel
+     ====================================================================== */
+  function openSound(sym) {
+    const s = SOUND[sym];
+    if (!s) return;
+    const a = s.a;
+    $("#modalSym").textContent = "/" + sym + "/";
+    $("#modalName").innerHTML = "<b>" + s.n + "</b>";
+    $("#modalDiagram").innerHTML = diagramHTML(sym);
+    startAnim(sym);
+    document.getElementById("vtPlay").addEventListener("click", toggleAnim);
+    document.getElementById("vtViewF").addEventListener("click", () => setView("front"));
+    document.getElementById("vtViewS").addEventListener("click", () => setView("side"));
+    document.getElementById("vtSay").addEventListener("click", () => say(s.ex[0], 0.7));
+
+    const facts = [];
+    if (a.t === "v") {
+      const height = a.v.h > .75 ? "close (high)" : a.v.h > .45 ? "mid" : a.v.h > .25 ? "open-mid" : "open (low)";
+      const front = a.v.f > .7 ? "front" : a.v.f > .35 ? "central" : "back";
+      facts.push(["Tongue", height + ", " + front + (a.g ? " — then it glides" : "")]);
+      facts.push(["Lips", a.v.r > .6 ? "rounded" : a.v.r > .2 ? "slightly rounded" : "spread or neutral"]);
+      facts.push(["Voicing", "voiced — every vowel is"]);
+      facts.push(["Jaw", a.v.h > .7 ? "nearly closed" : a.v.h > .4 ? "half open" : "well open"]);
+      if (a.rhotic) facts.push(["R-colouring", "the tongue tip curls up or bunches, giving the r quality"]);
+    } else {
+      facts.push(["Place", PLACE_NAME[a.p]]);
+      facts.push(["Manner", MANNER_NAME[a.m]]);
+      facts.push(["Voicing", a.vd ? "voiced — the vocal folds vibrate" : "voiceless — the vocal folds stay open"]);
+      facts.push(["Soft palate", a.m === "nasal" ? "lowered, so air escapes through the nose" : "raised, sealing off the nose"]);
+    }
+    $("#modalFacts").innerHTML = facts.map(f => "<li><b>" + f[0] + "</b>" + f[1] + "</li>").join("");
+
+    const ex = $("#modalExamples");
+    ex.innerHTML = "";
+    s.ex.forEach(w => {
+      const e = DICT[w];
+      const b = document.createElement("button");
+      b.type = "button";
+      b.innerHTML = "▶ " + w + (e ? '<span>/' + ipaOf(e) + "/</span>" : "");
+      b.addEventListener("click", () => say(w, 0.8));
+      ex.appendChild(b);
+    });
+
+    const pairSym = a.t === "c" ? pairedVoicing(sym) : null;
+    $("#modalNote").innerHTML = pairSym
+      ? 'Same mouth position as <b class="ipa">/' + pairSym + "/</b> — the only difference is whether the vocal folds vibrate. Put a finger on your throat and switch between them."
+      : "Hold the position and say the example words slowly to feel where your tongue sits.";
+
+    $("#soundModal").hidden = false;
+    $("#modalClose").focus();
+  }
+  function pairedVoicing(sym) {
+    const pairs = { p: "b", b: "p", t: "d", d: "t", k: "ɡ", "ɡ": "k", f: "v", v: "f", "θ": "ð", "ð": "θ", s: "z", z: "s", "ʃ": "ʒ", "ʒ": "ʃ", "tʃ": "dʒ", "dʒ": "tʃ" };
+    return pairs[sym] || null;
+  }
+  function closeSound() { stopAnim(); $("#soundModal").hidden = true; }
+  $("#modalClose").addEventListener("click", closeSound);
+  $("#soundModal").addEventListener("click", e => { if (e.target.id === "soundModal") closeSound(); });
+
+  /* ======================================================================
+     7. Chart
+     ====================================================================== */
   function makeCell(it, kind) {
     if (!it) { const e = document.createElement("div"); e.className = "cell empty"; return e; }
     const ex = DICT[it[1]];
@@ -583,15 +1051,15 @@
     if (kind === "cons") {
       const v = document.createElement("span");
       v.className = "v";
-      v.textContent = VOICELESS.indexOf(it[0]) >= 0 ? "清" : "濁";
+      v.textContent = VOICELESS.indexOf(it[0]) >= 0 ? "vl" : "vd";
       b.appendChild(v);
     }
     const sym = document.createElement("span"); sym.className = "sym"; sym.textContent = "/" + it[0] + "/";
     const w = document.createElement("span"); w.className = "ex"; w.textContent = it[1];
     const tr = document.createElement("span"); tr.className = "ex ipa"; tr.textContent = ex ? "/" + ipaOf(ex) + "/" : "";
     b.appendChild(sym); b.appendChild(w); b.appendChild(tr);
-    b.title = it[1] + (ex ? " /" + ipaOf(ex) + "/" : "");
-    b.addEventListener("click", () => say(it[1], 0.75));
+    b.title = "Open the articulation of /" + it[0] + "/";
+    b.addEventListener("click", () => { say(it[1], 0.75); openSound(it[0]); });
     return b;
   }
   function section(title, count, cls, items, kind, caption) {
@@ -601,7 +1069,7 @@
     h.textContent = title;
     const c = document.createElement("span");
     c.className = "count";
-    c.textContent = count + " 個";
+    c.textContent = count;
     h.appendChild(c);
     const cells = document.createElement("div");
     cells.className = "cells " + cls;
@@ -615,27 +1083,30 @@
     const c = chart();
     const host = $("#chartGroups");
     host.innerHTML = "";
-    const nMono = c.mono.filter(Boolean).length;
-    const nDiph = c.diph.filter(Boolean).length;
-    host.appendChild(section("單母音 monophthongs", nMono, "vgrid", c.mono, "vowel",
-      "由上到下舌位由高到低，左邊偏前、右邊偏後；/ː/ 表示長音。"));
-    host.appendChild(section("雙母音 diphthongs", nDiph, "dgrid", c.diph, "vowel",
-      "一個音節內從前一個母音滑向後一個母音。"));
+    const nMono = c.mono.filter(Boolean).length, nDiph = c.diph.filter(Boolean).length;
+    host.appendChild(section("Monophthongs", nMono + " sounds", "vgrid", c.mono, "vowel",
+      "Down the block the tongue drops; across it moves from front to back. The ː mark means a long vowel."));
+    host.appendChild(section("Diphthongs", nDiph + " sounds", "dgrid", c.diph, "vowel",
+      "One syllable, two targets: the tongue starts at the first vowel and glides towards the second."));
     const cons = [];
     c.cons.forEach(r => r.forEach(i => cons.push(i)));
-    host.appendChild(section("子音 consonants", cons.length, "cgrid", cons, "cons",
-      "每一組左清右濁：/p b/、/t d/、/tʃ dʒ/、/k ɡ/、/f v/、/θ ð/、/s z/、/ʃ ʒ/ 的口型相同，差別只在聲帶振不振動。"));
+    host.appendChild(section("Consonants", cons.length + " sounds", "cgrid", cons, "cons",
+      "The first eight pairs differ only in voicing: /p b/, /t d/, /tʃ dʒ/, /k ɡ/, /f v/, /θ ð/, /s z/, /ʃ ʒ/ share a mouth position."));
+    host.appendChild(section("Weak vowels", "Cambridge extras", "wgrid", c.weak, "vowel",
+      "Not part of the 44: Cambridge writes /i/ and /u/ where a weak vowel sits between the short and long pair."));
     const legend = document.createElement("div");
     legend.className = "legend";
-    legend.innerHTML = '<span><i style="background:var(--muted)"></i>清音 voiceless（聲帶不振動）</span>'
-      + '<span><i style="background:var(--ochre)"></i>濁音 voiced（聲帶振動）</span>'
-      + "<span>總計 " + (nMono + nDiph + cons.length) + " 個音素</span>";
+    legend.innerHTML = '<span><i style="background:var(--muted)"></i>vl · voiceless</span>'
+      + '<span><i style="background:var(--ochre)"></i>vd · voiced</span>'
+      + "<span>" + (nMono + nDiph + cons.length) + " phonemes · tap any cell for its mouth position</span>";
     host.appendChild(legend);
-    $("#chartTitle").textContent = c.label + " IPA chart · 點一下聽例字";
+    $("#chartTitle").textContent = c.label;
     $("#chartNote").textContent = c.note + " " + speechNote();
   }
 
-  /* ============ options renderer ============ */
+  /* ======================================================================
+     8. Quiz plumbing
+     ====================================================================== */
   function renderOptions(host, options, labelOf, isCorrect, onPick) {
     host.innerHTML = "";
     options.forEach((o, i) => {
@@ -656,7 +1127,7 @@
     });
   }
 
-  /* ============ mode: build (dictation) ============ */
+  /* ---- dictation ---- */
   let buildQ = null;
   function paintKeyboard() {
     const host = $("#buildKeys");
@@ -664,20 +1135,20 @@
     symbols().forEach(s => {
       const b = document.createElement("button");
       b.type = "button"; b.className = "key-btn"; b.textContent = s;
-      b.addEventListener("click", () => { if (buildQ && !buildQ.done) { buildQ.typed.push(s); paintBuild(); } });
+      b.addEventListener("click", () => { if (buildQ && !buildQ.done) { buildQ.typed.push(s); buildQ.checked = false; paintBuild(); } });
       host.appendChild(b);
     });
-    [["← 刪除", () => { buildQ.typed.pop(); }], ["清空", () => { buildQ.typed = []; }]].forEach(p => {
+    [["← delete", () => { buildQ.typed.pop(); }], ["clear", () => { buildQ.typed = []; }]].forEach(p => {
       const b = document.createElement("button");
       b.type = "button"; b.className = "key-btn wide"; b.textContent = p[0];
-      b.addEventListener("click", () => { if (buildQ && !buildQ.done) { p[1](); paintBuild(); } });
+      b.addEventListener("click", () => { if (buildQ && !buildQ.done) { p[1](); buildQ.checked = false; paintBuild(); } });
       host.appendChild(b);
     });
   }
   function paintBuild() {
     const slot = $("#buildSlot");
     slot.innerHTML = "";
-    if (!buildQ || !buildQ.typed.length) { slot.textContent = "／按下方符號開始／"; slot.classList.remove("filled"); return; }
+    if (!buildQ || !buildQ.typed.length) { slot.textContent = "/ tap the symbols below /"; slot.classList.remove("filled"); return; }
     slot.classList.add("filled");
     const want = tokenize(buildQ.ipa);
     slot.appendChild(document.createTextNode("/"));
@@ -690,21 +1161,23 @@
     slot.appendChild(document.createTextNode("/"));
   }
   function newBuild() {
-    const pool = ENTRIES.filter(e => stripStress(ipaOf(e)).length <= 9);
+    const pool = ENTRIES.filter(e => stripMarks(ipaOf(e)).length <= 9);
     const e = pick(pool);
-    buildQ = { word: e.w, ipa: stripStress(ipaOf(e)), typed: [], checked: false, done: false };
-    $("#buildWord").textContent = "先聽，拼不出來再看字";
-    $("#buildWord").style.color = "var(--muted)";
-    $("#buildWord").style.fontSize = "20px";
+    buildQ = { word: e.w, ipa: stripMarks(ipaOf(e)), typed: [], checked: false, done: false };
+    const w = $("#buildWord");
+    w.textContent = "Listen first — reveal the spelling only if you need it";
+    w.style.color = "var(--muted)";
+    w.style.fontSize = "20px";
     $("#buildFb").textContent = ""; $("#buildFb").className = "feedback";
     paintBuild();
     say(e.w);
   }
   function revealWord() {
     if (!buildQ) return;
-    $("#buildWord").textContent = buildQ.word;
-    $("#buildWord").style.color = "var(--ink)";
-    $("#buildWord").style.fontSize = "";
+    const w = $("#buildWord");
+    w.textContent = buildQ.word;
+    w.style.color = "var(--ink)";
+    w.style.fontSize = "";
   }
   $("#buildPlay").addEventListener("click", () => { if (buildQ) say(buildQ.word); });
   $("#buildSlow").addEventListener("click", () => { if (buildQ) say(buildQ.word, 0.55); });
@@ -715,34 +1188,35 @@
     const want = tokenize(buildQ.ipa);
     let i = 0;
     while (i < buildQ.typed.length && i < want.length && buildQ.typed[i] === want[i]) i++;
-    buildQ.typed = want.slice(0, Math.min(i + 1, want.length));
+    const n = Math.min(i + 1, want.length);
+    buildQ.typed = want.slice(0, n);
     buildQ.checked = false;
     paintBuild();
     $("#buildFb").className = "feedback";
-    $("#buildFb").textContent = "提示：第 " + Math.min(i + 1, want.length) + " 個音是 /" + want[Math.min(i, want.length - 1)] + "/";
+    $("#buildFb").textContent = "Sound " + n + " is /" + want[n - 1] + "/";
   });
   $("#buildCheck").addEventListener("click", () => {
-    if (!buildQ || buildQ.done) return;
+    if (!buildQ || buildQ.done || !buildQ.typed.length) return;
     const ok = buildQ.typed.join("") === buildQ.ipa;
     buildQ.checked = true;
     paintBuild();
-    if (!ok) { mark(false); }
-    else { buildQ.done = true; mark(true); }
+    mark(ok);
+    if (ok) buildQ.done = true;
     const fb = $("#buildFb");
     fb.className = "feedback " + (ok ? "good" : "bad");
     fb.innerHTML = ok
-      ? '✓ 正確 <b>' + buildQ.word + '</b> <span class="ipa">/' + buildQ.ipa + "/</span>"
-      : '✗ 再試一次（紅色是錯的音）。正確是 <span class="ipa">/' + buildQ.ipa + "/</span>";
+      ? "✓ Correct — <b>" + buildQ.word + '</b> <span class="ipa">/' + buildQ.ipa + "/</span>"
+      : 'Not yet — the wavy symbols are wrong. It is <span class="ipa">/' + buildQ.ipa + "/</span>";
     if (!ok) revealWord();
     if (ok) setTimeout(newBuild, 1100);
   });
 
-  /* ============ mode: lookup ============ */
+  /* ---- lookup ---- */
   function analyse(raw) {
     const words = raw.toLowerCase().split(/[^a-z']+/).filter(Boolean);
     const host = $("#lookResult");
     host.innerHTML = "";
-    if (!words.length) { host.innerHTML = '<p class="hintline">請輸入英文單字。</p>'; return; }
+    if (!words.length) { host.innerHTML = '<p class="hintline">Type an English word to see its transcription.</p>'; return; }
     words.slice(0, 12).forEach(w => {
       const key = w.replace(/'/g, "");
       const e = DICT[key];
@@ -757,21 +1231,24 @@
       const tr = document.createElement("span"); tr.className = "tr"; tr.textContent = "/" + ipa + "/";
       const tag = document.createElement("span");
       tag.className = "tag" + (known ? "" : " guess");
-      tag.textContent = known ? "字典 · " + (accent === "us" ? "GA" : "RP") : "推測 · " + (accent === "us" ? "GA" : "RP");
+      tag.textContent = (known ? "dictionary · " : "guess · ") + (accent === "us" ? "US" : "UK");
       const play = document.createElement("button");
-      play.type = "button"; play.className = "btn"; play.textContent = "▶ 聽";
+      play.type = "button"; play.className = "btn"; play.textContent = "▶ Play";
       play.addEventListener("click", () => say(w, 0.8));
       line.appendChild(ws); line.appendChild(tr); line.appendChild(tag); line.appendChild(play);
 
       const chips = document.createElement("div");
       chips.className = "chips";
-      tokenize(stripStress(ipa)).forEach(t => {
-        const ex = exampleFor(t);
+      tokenize(stripMarks(ipa)).forEach(t => {
+        const known2 = !!SOUND[t];
         const c = document.createElement("button");
-        c.type = "button"; c.className = "chip";
+        c.type = "button";
+        c.className = "chip" + (known2 ? "" : " flat");
         c.textContent = t;
-        if (ex) { const s = document.createElement("small"); s.textContent = ex; c.appendChild(s); }
-        c.addEventListener("click", () => { if (ex) say(ex, 0.75); });
+        if (known2) {
+          c.title = SOUND[t].n;
+          c.addEventListener("click", () => openSound(t));
+        }
         chips.appendChild(c);
       });
 
@@ -780,89 +1257,85 @@
       if (known && e.gb !== e.us) {
         const other = document.createElement("div");
         other.className = "hintline";
-        other.innerHTML = '另一個口音：<span class="ipa">/' + (accent === "us" ? e.gb : e.us) + "/</span>（" + (accent === "us" ? "英式 RP" : "美式 GA") + "）";
+        other.innerHTML = (accent === "us" ? "UK" : "US") + ': <span class="ipa">/' + (accent === "us" ? e.gb : e.us) + "/</span>";
         card.appendChild(other);
       }
       host.appendChild(card);
     });
   }
-  function exampleFor(sym) {
-    const hit = allCells().filter(i => i[0] === sym)[0];
-    return hit ? hit[1] : null;
-  }
   $("#lookGo").addEventListener("click", () => analyse($("#lookInput").value));
   $("#lookInput").addEventListener("keydown", e => { if (e.key === "Enter") analyse($("#lookInput").value); });
 
-  /* ============ mode: listen ============ */
+  /* ---- pick the transcription ---- */
   let listenQ = null;
   function newListen() {
     const e = pick(ENTRIES);
     const correct = ipaOf(e);
-    const used = [correct];
-    const opts = [correct];
+    const used = [correct], opts = [correct];
     for (let i = 0; i < 3; i++) { const d = makeDistractor(correct, used); if (d) { used.push(d); opts.push(d); } }
     listenQ = { word: e.w };
     $("#listenFb").textContent = ""; $("#listenFb").className = "feedback";
     $("#listenNext").hidden = true;
-    $("#listenHint").textContent = "按空白鍵可重播，按 1–4 選答案";
+    $("#listenHint").textContent = "Space replays · 1–4 answers";
     renderOptions($("#listenOpts"), shuffle(opts), o => "/" + o + "/", o => o === correct, ok => {
       mark(ok);
       const fb = $("#listenFb");
       fb.className = "feedback " + (ok ? "good" : "bad");
-      fb.innerHTML = (ok ? "✓ 答對了 — " : "✗ 正確是 ") + '<span class="ipa"><b>/' + correct + "/</b></span> <span style=\"color:var(--muted)\">" + e.w + "</span>";
+      fb.innerHTML = (ok ? "✓ Yes — " : "✗ It was ") + '<span class="ipa"><b>/' + correct + "/</b></span> <span style=\"color:var(--muted)\">" + e.w + "</span>";
       $("#listenNext").hidden = false;
       $("#listenNext").focus();
     });
-    if (!say(e.w)) $("#listenHint").textContent = "（無語音）這個字是：" + e.w;
+    if (!say(e.w)) $("#listenHint").textContent = "No voice available — the word is: " + e.w;
   }
   $("#listenPlay").addEventListener("click", () => { if (listenQ) say(listenQ.word); });
   $("#listenNext").addEventListener("click", newListen);
 
-  /* ============ mode: pairs ============ */
+  /* ---- minimal pairs ---- */
   const PAIR_WORDS = [
-    ["ship","sheep"],["live","leave"],["full","fool"],["cat","cup"],["bad","bed"],["hat","hut"],
-    ["work","walk"],["cot","coat"],["thin","sin"],["three","free"],["think","sink"],["vine","wine"],
-    ["very","berry"],["light","right"],["glass","grass"],["sheep","cheap"],["chair","share"],
-    ["cheap","jeep"],["bag","back"],["cold","gold"],["sun","sung"],["thin","thing"],["ran","rang"],
-    ["goat","coat"],["caught","court"],["hot","hat"],["pot","pet"]
+    ["ship", "sheep"], ["live", "leave"], ["full", "fool"], ["cat", "cup"], ["bad", "bed"], ["hat", "hut"],
+    ["work", "walk"], ["cot", "coat"], ["thin", "sin"], ["three", "free"], ["think", "sink"], ["vine", "wine"],
+    ["very", "berry"], ["light", "right"], ["glass", "grass"], ["sheep", "cheap"], ["chair", "share"],
+    ["cheap", "jeep"], ["bag", "back"], ["cold", "gold"], ["sun", "sung"], ["thin", "thing"], ["ran", "rang"],
+    ["goat", "coat"], ["caught", "court"], ["hot", "hat"], ["pot", "pet"]
   ];
   function contrastLabel(a, b) {
-    const ta = tokenize(stripStress(a)), tb = tokenize(stripStress(b));
-    if (ta.length === tb.length) {
-      for (let i = 0; i < ta.length; i++) if (ta[i] !== tb[i]) return "/" + ta[i] + "/ 對 /" + tb[i] + "/";
-    }
-    return "兩個字只差一個音素";
+    const ta = tokenize(stripMarks(a)), tb = tokenize(stripMarks(b));
+    if (ta.length === tb.length) for (let i = 0; i < ta.length; i++) if (ta[i] !== tb[i]) return "/" + ta[i] + "/ against /" + tb[i] + "/";
+    return "one phoneme apart";
   }
   let pairQ = null;
   function newPairs() {
-    let p = pick(PAIR_WORDS);
+    const p = pick(PAIR_WORDS);
     const ea = DICT[p[0]], eb = DICT[p[1]];
     if (!ea || !eb) { newPairs(); return; }
     const target = Math.random() < 0.5 ? ea : eb;
     pairQ = { word: target.w };
     $("#pairsFb").textContent = ""; $("#pairsFb").className = "feedback";
     $("#pairsNext").hidden = true;
-    $("#pairsHint").textContent = "對比：" + contrastLabel(ipaOf(ea), ipaOf(eb));
+    $("#pairsHint").textContent = contrastLabel(ipaOf(ea), ipaOf(eb));
     renderOptions($("#pairsOpts"), shuffle([ea, eb]), o => o.w + "  /" + ipaOf(o) + "/", o => o.w === target.w, ok => {
       mark(ok);
       const fb = $("#pairsFb");
       fb.className = "feedback " + (ok ? "good" : "bad");
-      fb.innerHTML = (ok ? "✓ 是 " : "✗ 聽到的是 ") + "<b>" + target.w + '</b> <span class="ipa">/' + ipaOf(target) + "/</span>";
+      fb.innerHTML = (ok ? "✓ Yes — " : "✗ You heard ") + "<b>" + target.w + '</b> <span class="ipa">/' + ipaOf(target) + "/</span>";
       $("#pairsNext").hidden = false;
       $("#pairsNext").focus();
     });
-    if (!say(target.w, 0.8)) $("#pairsHint").textContent = "（無語音）這個字是：" + target.w;
+    if (!say(target.w, 0.8)) $("#pairsHint").textContent = "No voice available — the word is: " + target.w;
   }
   $("#pairsPlay").addEventListener("click", () => { if (pairQ) say(pairQ.word, 0.8); });
   $("#pairsNext").addEventListener("click", newPairs);
 
-  /* ============ accent switch ============ */
+  /* ======================================================================
+     9. Accent switch, tabs, keyboard
+     ====================================================================== */
   function setAccent(a) {
     if (accent === a) return;
     accent = a;
     try { localStorage.setItem("soundlab.accent", a); } catch (e) {}
     $("#accGB").setAttribute("aria-pressed", String(a === "gb"));
     $("#accUS").setAttribute("aria-pressed", String(a === "us"));
+    $("#soundModal").hidden = true;
     paintChart();
     paintKeyboard();
     if (buildQ) newBuild();
@@ -875,7 +1348,6 @@
   $("#accGB").setAttribute("aria-pressed", String(accent === "gb"));
   $("#accUS").setAttribute("aria-pressed", String(accent === "us"));
 
-  /* ============ tabs ============ */
   const MODES = ["chart", "build", "look", "listen", "pairs"];
   let current = "chart";
   function openMode(m) {
@@ -893,6 +1365,8 @@
   document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => openMode(b.dataset.mode)));
 
   document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && !$("#soundModal").hidden) { closeSound(); return; }
+    if (!$("#soundModal").hidden) return;
     if (e.target && /input|textarea/i.test(e.target.tagName)) return;
     if (e.code === "Space") {
       if (current === "listen" && listenQ) { e.preventDefault(); say(listenQ.word); }
@@ -914,10 +1388,9 @@
 
   paintChart();
   paintKeyboard();
-  const start = MODES.indexOf(location.hash.slice(1)) >= 0 ? location.hash.slice(1) : "chart";
-  openMode(start);
+  openMode(MODES.indexOf(location.hash.slice(1)) >= 0 ? location.hash.slice(1) : "chart");
 
-  // sample so the lookup panel is never an empty shell
+  // The lookup panel opens on a worked example rather than an empty field.
   $("#lookInput").value = "comfortable";
   analyse("comfortable");
 })();

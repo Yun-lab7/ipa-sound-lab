@@ -1,55 +1,73 @@
-# Sound Lab 音標練習室
+# Sound Lab
 
-英語 44 個音素的 IPA 練習網頁。單一 HTML 檔、沒有相依套件、不需要後端，開著就能用。
+An IPA practice page for the 44 phonemes of English, in **Cambridge Dictionary notation**. One static HTML file, no dependencies, no build step, no backend.
 
-**線上版**：啟用 GitHub Pages 後是 `https://<你的帳號>.github.io/ipa-sound-lab/`
+**Live site**: once GitHub Pages is on, `https://<your-account>.github.io/ipa-sound-lab/`
 
-![mode: chart / dictation / lookup](https://img.shields.io/badge/modes-5-0b6e6a) ![no build step](https://img.shields.io/badge/build-none-8f5f13)
+## What it does
 
-## 功能
-
-| 模式 | 做什麼 |
+| Mode | What you do |
 | --- | --- |
-| **音標表** | 依 BBC／Sounds Right 的排法：單母音 4×3（舌位由高到低、由前到後）、雙母音、子音三列並標示清濁。點任一格聽例字。 |
-| **聽寫拼音** | 聽一個單字，用下方的音標鍵盤把每個音拼出來。可提示下一個音、可顯示拼法、檢查時會標出拼錯的音素。 |
-| **查單字音標** | 輸入單字或一整句，逐字列出音標；字典收錄的標「字典」，未收錄的用拼字規則推測並標「推測」。每個音素可單獨點來聽例字。 |
-| **聽音選音標** | 聽單字，從四個只差一個音素的選項中挑出正確的一串。 |
-| **最小對立對** | ship／sheep、thin／sin 這類只差一個音的配對聽辨。 |
+| **Chart** | The phonemic chart in the printed layout: monophthongs in a 4×3 block, diphthongs beside them, consonants in three rows. Tap any cell to hear its example word and open the sound's articulation. |
+| **Dictation** | Hear a word and spell every sound with the IPA keyboard. Reveal the next sound, show the spelling, or check — wrong symbols are underlined. |
+| **Word lookup** | Type a word or a whole sentence and get a transcription per word, with each symbol tappable. |
+| **Pick the transcription** | Hear a word, choose between four transcriptions that differ by one phoneme. |
+| **Minimal pairs** | ship/sheep, thin/sin, cold/gold — tell apart two words one phoneme apart. |
 
-全站可切換 **英式 RP** 與 **美式 GA**：音標表的音素、字典的標音、題目的答案都會跟著換，語音也會改用對應口音的語音合成。
+A **UK / US** switch drives everything: the chart inventory, the dictionary forms, the quiz answers, and the speech-synthesis voice.
 
-## 44 個音素
+## Animated mouth shapes
 
-- **12 個單母音**：iː ɪ ʊ uː e ə ɜː ɔː æ ʌ ɑː ɒ
-- **8 個雙母音**：ɪə eɪ ʊə ɔɪ əʊ eə aɪ aʊ
-- **24 個子音**：p b t d tʃ dʒ k ɡ ／ f v θ ð s z ʃ ʒ ／ m n ŋ h l r w j
+Every phoneme opens a panel with two animated views, looping from rest into the articulation and back:
 
-子音前八組左清右濁（/p b/、/t d/、/tʃ dʒ/、/k ɡ/、/f v/、/θ ð/、/s z/、/ʃ ʒ/）：口型一樣，差別只在聲帶振不振動。美式 GA 把 /ɒ/ 併入 /ɑː/、沒有 /ɪə eə ʊə/，並多出 /ɚ ɝː/。
+- **Front** — a lifelike mouth seen as if in a mirror: lip rounding and spreading, jaw opening, teeth on the lip for /f v/, tongue between the teeth for /θ ð/. This is the shape to copy.
+- **Side** — a schematic cross-section: tongue position, the soft palate raising or lowering for nasals, the closure and release of a plosive, friction for fricatives, and whether the vocal folds are vibrating.
 
-## 本機執行
+Both are drawn from one parametric state, so the timeline differs per manner: plosives close, hold and burst; fricatives hold a constriction; nasals drop the velum and route air through the nose; diphthongs glide from one tongue position to the next. Animation is skipped when the browser reports `prefers-reduced-motion`.
 
-不需要編譯，直接打開 `index.html` 就好。想用本機伺服器：
+The drawings are schematic, not recordings. For real MRI and ultrasound of each sound, see [Seeing Speech](https://www.seeingspeech.ac.uk/ipa-charts/).
+
+## The 44 phonemes
+
+- **12 monophthongs** — iː ɪ ʊ uː e ə ɜː ɔː æ ʌ ɑː ɒ
+- **8 diphthongs** — ɪə eɪ ʊə ɔɪ əʊ eə aɪ aʊ
+- **24 consonants** — p b t d tʃ dʒ k ɡ · f v θ ð s z ʃ ʒ · m n ŋ h l r w j
+
+The first eight consonant pairs differ only in voicing, so voiceless cells are drawn pale and voiced cells in full colour. Cambridge also writes the weak vowels /i/ (happ**y**) and /u/ (sit**u**ation); they sit in their own row outside the 44.
+
+US English merges /ɒ/ into /ɑː/, has no /ɪə eə ʊə/, and adds the r-coloured /ɚ ɝː/.
+
+## Cambridge conventions used here
+
+- A dot marks a syllable break: `comfortable /ˈkʌmf.tə.bəl/`
+- UK transcriptions print a final `r` that is only sounded before a vowel: `car /kɑːr/`, but `park /pɑːk/`
+- `əl` and `ən` are written in full rather than as syllabic consonants: `table /ˈteɪ.bəl/`
+- The US flap diacritic `t̬` is left out to keep the keyboard to one symbol per sound
+
+## Running it
+
+No build. Open `index.html`, or serve the folder:
 
 ```bash
 python -m http.server 8000
 ```
 
-## 發佈到 GitHub Pages
+## Publishing to GitHub Pages
 
-Settings → Pages → Source 選 **Deploy from a branch**，分支選 `main`、資料夾選 `/ (root)`，存檔後約一分鐘就會有網址。
+Settings → Pages → Source → **Deploy from a branch**, branch `main`, folder `/ (root)`. The URL appears after about a minute.
 
-## 已知限制
+## Known limits
 
-- 發音用瀏覽器內建的 `speechSynthesis`，有沒有英式／美式語音看作業系統。Windows 可在「設定 → 時間與語言 → 語音」加裝 English (United Kingdom) 或 (United States) 語音。
-- 語音合成唸不出孤立的音素，所以點音標格聽到的是**例字**，不是單一音。
-- 字典目前約 300 個常用字；沒收錄的字用拼字規則推測，英文例外很多，推測結果僅供參考。歡迎直接在 `index.html` 的 `RAW` 陣列裡補字，格式是 `單字|英式音標|美式音標`（兩者相同時省略第三欄）。
+- Audio uses the browser's built-in `speechSynthesis`, so UK and US voices depend on the operating system. On Windows, add them under Settings → Time & language → Speech.
+- Speech synthesis cannot pronounce a phoneme in isolation, so a chart cell plays its example word.
+- The dictionary holds about 300 common words. Anything else is transcribed by letter-to-sound rules and tagged **guess**. To add words, edit the `RAW` array in `index.html`: `word|UK|US`, with the third field left out when the two match.
 
-## 參考
+## Credits
 
-- [British Council — Sounds Right 發音表](https://www.britishcouncil.org.tw/teach/courses-resources/sounds-right)
-- [SIL IPA Help](https://software.sil.org/zh-TW/ipahelp2-1/)
-- [IPA chart 介紹](https://prepedu.com/zh-hant/blog/ipa-chart)
+- [Cambridge Dictionary phonetics key](https://dictionary.cambridge.org/zht/help/phonetics.html) — the symbol set and conventions
+- [British Council · Sounds Right](https://www.britishcouncil.org.tw/teach/courses-resources/sounds-right) — chart layout
+- [Seeing Speech](https://www.seeingspeech.ac.uk/ipa-charts/) — real articulation imaging
 
-## 授權
+## Licence
 
-MIT，見 [LICENSE](LICENSE)。
+MIT — see [LICENSE](LICENSE).
