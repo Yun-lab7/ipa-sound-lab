@@ -142,16 +142,23 @@
   .modal-head .sym { font-family: var(--font-ipa); font-size: 38px; font-weight: 700; color: var(--accent); line-height: 1; }
   .modal-head .nm { font-size: 14px; color: var(--muted); flex: 1 1 160px; min-width: 0; }
   .modal-head .nm b { display: block; color: var(--ink); font-size: 16px; font-family: var(--font-display); }
-  .vtcap { margin: 10px 0 0; font-size: 14px; font-weight: 700; color: var(--accent); min-height: 20px; }
+  .howto {
+    margin: 0; font-size: 18px; line-height: 1.5; color: var(--ink);
+    background: var(--accent-soft); border-left: 4px solid var(--accent);
+    border-radius: 0 10px 10px 0; padding: 12px 14px;
+  }
+  .vtcap { margin: 12px 0 0; font-size: 19px; font-weight: 700; color: var(--accent); min-height: 26px; line-height: 1.35; }
   .vt { width: 100%; height: auto; display: block; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; }
   .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
-  .facts li { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font-size: 13px; min-width: 0; }
-  .facts b { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  .facts li { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; font-size: 15px; line-height: 1.4; min-width: 0; }
+  .facts b { display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 2px; }
   .exrow { display: flex; flex-wrap: wrap; gap: 8px; }
   .exrow button { font: inherit; font-size: 15px; cursor: pointer; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 999px; padding: 7px 14px; }
   .exrow button:hover { border-color: var(--accent); background: var(--accent-soft); }
   .exrow button span { font-family: var(--font-ipa); color: var(--muted); margin-left: 6px; font-size: 13px; }
   .modal a { color: var(--accent); }
+  .modal .hintline { font-size: 14px; line-height: 1.5; }
+  .modal-head .nm b { font-size: 18px; }
 
   /* prompts and options */
   .prompt { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 22px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
@@ -310,6 +317,13 @@
       <button class="btn" id="buildSkip" type="button">New word →</button>
     </div>
     <div class="feedback" id="buildFb"></div>
+    <div class="row">
+      <button class="btn" id="buildPlayTyped" type="button">▶ Play what I typed</button>
+      <div class="seg" id="buildKeySound" role="group" aria-label="Key sounds">
+        <button type="button" data-k="on" aria-pressed="true">Keys play</button>
+        <button type="button" data-k="off" aria-pressed="false">Keys silent</button>
+      </div>
+    </div>
     <div class="keys" id="buildKeys"></div>
   </section>
 
@@ -349,6 +363,8 @@
   </section>
 
   <footer class="note">
+    In dictation, <b>Keys play</b> sounds each symbol as you press it, and <b>Play what I typed</b>
+    reads your answer back, so you can build a word by ear and compare it with what you heard. On a real keyboard, Backspace removes the last sound, Delete clears the box, Enter checks the answer and Space plays the word again.
     Cambridge conventions: a dot marks a syllable break (<code>ˈkʌmf.tə.bəl</code>), UK transcriptions print a final <code>r</code> that is only sounded before a vowel (<code>car /kɑːr/</code>), and <code>əl ən</code> are written in full rather than as syllabic consonants. Single sounds are played from real recordings by Wikimedia Commons contributors, used unchanged under <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a>; each sound panel names its own recording. Example words are spoken by your browser. The articulation drawings are schematic — for real MRI and ultrasound of each sound, see <a href="https://www.seeingspeech.ac.uk/ipa-charts/" target="_blank" rel="noopener">Seeing Speech</a>.
   </footer>
 </div>
@@ -360,6 +376,7 @@
       <span class="nm" id="modalName"><b>name</b>description</span>
       <button class="btn" id="modalClose" type="button">Close</button>
     </div>
+    <p class="howto" id="modalHow"></p>
     <div id="modalDiagram"></div>
     <ul class="facts" id="modalFacts"></ul>
     <div class="exrow" id="modalExamples"></div>
@@ -594,6 +611,17 @@
     if (seq && AUDIO[seq[0]] && AUDIO[seq[1]]) return seq;
     return AUDIO[sym] ? [sym] : null;
   }
+  function playSequence(syms) {
+    if (quiet) return true;
+    const files = [];
+    syms.forEach(s => {
+      const parts = partsOf(s);
+      if (parts) parts.forEach(x => files.push(AUDIO[x].f));
+    });
+    if (!files.length) return false;
+    playFiles(files, () => {});
+    return true;
+  }
   function playPhoneme(sym, fallbackWord) {
     if (quiet) return true;
     const back = () => { if (fallbackWord) say(fallbackWord, 0.75); };
@@ -602,6 +630,60 @@
     try { playFiles(parts.map(s => AUDIO[s].f), back); return true; }
     catch (e) { back(); return false; }
   }
+
+  // Said in plain words: what to do with your mouth. The boxes lower down give the
+  // phonetic terms for the same thing.
+  const HOWTO = {
+    "iː": "Smile. Push the front of your tongue up, close to the roof of your mouth. Hold it long.",
+    "ɪ": "Like /iː/ but short and loose. Drop the tongue a little and relax your lips.",
+    "e": "Lips spread, mouth a little open. The tongue sits forward, halfway up.",
+    "æ": "Drop your jaw and open wide. Keep the tongue forward and low.",
+    "ʌ": "Short and quick. Mouth half open, tongue in the middle, lips relaxed.",
+    "ɑː": "Open wide, as you do for the doctor. Pull the tongue back and down. Hold it long.",
+    "ɒ": "Short. Drop the jaw, pull the tongue back, and round the lips a little.",
+    "ɔː": "Push your lips forward into a round shape. Tongue back, mouth half open. Hold it long.",
+    "ʊ": "Short and loose. Lips slightly round, tongue high and back.",
+    "uː": "Push your lips forward into a small circle. Tongue high and back. Hold it long.",
+    "ɜː": "Mouth half open, lips flat, tongue in the middle. Hold it long.",
+    "ə": "The lazy sound. Weak and short, with the mouth barely moving. Never stressed.",
+    "ɚ": "Say /ə/ and curl your tongue back at the same time. The r is in the vowel.",
+    "ɝː": "Say /ɜː/ and curl your tongue back at the same time. The r is in the vowel.",
+    "i": "A short, weak /iː/. It is the sound at the end of happy.",
+    "u": "A short, weak /uː/, as in the middle of situation.",
+    "eɪ": "Start at /e/ and slide up to /ɪ/. One smooth move, with no stop in the middle.",
+    "aɪ": "Start with the mouth open, then slide up to /ɪ/.",
+    "ɔɪ": "Start with round lips at /ɔː/, then slide to /ɪ/.",
+    "əʊ": "Start at /ə/ and slide to /ʊ/, rounding your lips as you go.",
+    "oʊ": "Start with slightly round lips and slide to /ʊ/, rounding them more.",
+    "aʊ": "Start with the mouth open, then round the lips into /ʊ/.",
+    "ɪə": "Start at /ɪ/ and fall back to the lazy /ə/.",
+    "eə": "Start at /e/ and fall back to the lazy /ə/.",
+    "ʊə": "Start at /ʊ/ and fall back to the lazy /ə/.",
+    "p": "Close both lips, hold the air, then let it go with a small puff.",
+    "b": "The same as /p/, but with your voice on.",
+    "t": "Touch the ridge behind your top teeth with the tip of your tongue, then let the air go.",
+    "d": "The same as /t/, but with your voice on.",
+    "tʃ": "Stop the air just behind that ridge, then let it out slowly as a hiss.",
+    "dʒ": "The same as /tʃ/, but with your voice on.",
+    "k": "Lift the back of your tongue to the soft palate, hold the air, then let it go.",
+    "ɡ": "The same as /k/, but with your voice on.",
+    "f": "Rest your top teeth on your bottom lip and blow.",
+    "v": "The same as /f/, but with your voice on. You can feel the buzz in your lip.",
+    "θ": "Put the tip of your tongue between your teeth and blow gently.",
+    "ð": "The same as /θ/, but with your voice on.",
+    "s": "Tongue near the ridge, teeth almost together. Blow a thin line of air.",
+    "z": "The same as /s/, but with your voice on.",
+    "ʃ": "Pull your tongue back a little from /s/ and round your lips. Then blow.",
+    "ʒ": "The same as /ʃ/, but with your voice on.",
+    "h": "Just breathe out. Your mouth is already shaped for the sound that follows.",
+    "m": "Close your lips and send the sound out through your nose.",
+    "n": "Tongue on the ridge behind your teeth, and the sound goes out through your nose.",
+    "ŋ": "Back of the tongue up against the soft palate, and the sound goes out through your nose.",
+    "l": "Tongue tip on the ridge. The air flows around the sides of your tongue.",
+    "r": "Curl your tongue up, but do not let it touch the roof. Round your lips a little.",
+    "w": "Round your lips tightly, then open them into the sound that follows.",
+    "j": "Start near /iː/ and move straight into the sound that follows."
+  };
 
   const PLACE_NAME = {
     bilabial: "Both lips press together",
@@ -1179,6 +1261,8 @@
     const a = s.a;
     $("#modalSym").textContent = "/" + sym + "/";
     $("#modalName").innerHTML = "<b>" + s.n + "</b>";
+    $("#modalHow").textContent = HOWTO[sym] || "";
+    $("#modalHow").hidden = !HOWTO[sym];
     $("#modalDiagram").innerHTML = diagramHTML(sym);
     startAnim(sym);
     document.getElementById("vtPlay").addEventListener("click", toggleAnim);
@@ -1352,13 +1436,20 @@
 
   /* ---- dictation ---- */
   let buildQ = null;
+  // Hearing each key as you press it is how you can build a word by ear, so this
+  // is on unless it was switched off before.
+  let keySound = true;
+  try { keySound = localStorage.getItem("soundlab.keysound") !== "off"; } catch (e) {}
   function paintKeyboard() {
     const host = $("#buildKeys");
     host.innerHTML = "";
     symbols().forEach(s => {
       const b = document.createElement("button");
       b.type = "button"; b.className = "key-btn"; b.textContent = s;
-      b.addEventListener("click", () => { if (buildQ && !buildQ.done) { buildQ.typed.push(s); buildQ.checked = false; paintBuild(); } });
+      b.addEventListener("click", () => {
+        if (keySound) playPhoneme(s);
+        if (buildQ && !buildQ.done) { buildQ.typed.push(s); buildQ.checked = false; paintBuild(); }
+      });
       host.appendChild(b);
     });
     [["← delete", () => { buildQ.typed.pop(); }], ["clear", () => { buildQ.typed = []; }]].forEach(p => {
@@ -1439,6 +1530,24 @@
   $("#buildSlow").addEventListener("click", () => { if (buildQ) say(buildQ.word, 0.55); });
   $("#buildReveal").addEventListener("click", revealWord);
   $("#buildSkip").addEventListener("click", newBuild);
+  $("#buildPlayTyped").addEventListener("click", () => {
+    if (!buildQ || !buildQ.typed.length) {
+      $("#buildFb").className = "feedback";
+      $("#buildFb").textContent = "Tap some symbols first, then play them back.";
+      return;
+    }
+    playSequence(buildQ.typed);
+  });
+  document.querySelectorAll("#buildKeySound button").forEach(b => {
+    b.addEventListener("click", () => {
+      keySound = b.dataset.k === "on";
+      try { localStorage.setItem("soundlab.keysound", keySound ? "on" : "off"); } catch (e) {}
+      document.querySelectorAll("#buildKeySound button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    });
+  });
+  document.querySelectorAll("#buildKeySound button").forEach(b => {
+    b.setAttribute("aria-pressed", String((b.dataset.k === "on") === keySound));
+  });
   $("#buildKeep").addEventListener("click", () => {
     if (!buildQ || buildQ.done) return;
     const want = tokenize(buildQ.ipa);
@@ -1904,6 +2013,17 @@
       else if (current === "pairs" && pairQ) { e.preventDefault(); say(pairQ.word, 0.8); }
       else if (current === "build" && buildQ) { e.preventDefault(); say(buildQ.word); }
       else if (current === "ears" && ears.target) { e.preventDefault(); earPlay(); }
+      return;
+    }
+    // In dictation the real keyboard edits the answer: Backspace removes the last
+    // sound, Delete (or a modifier) clears the lot.
+    if (current === "build" && buildQ && !buildQ.done && (e.key === "Backspace" || e.key === "Delete")) {
+      e.preventDefault();
+      if (e.key === "Delete" || e.ctrlKey || e.metaKey || e.shiftKey) buildQ.typed = [];
+      else buildQ.typed.pop();
+      buildQ.checked = false;
+      $("#buildKeep").hidden = true;
+      paintBuild();
       return;
     }
     if (/^[1-6]$/.test(e.key)) {
