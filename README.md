@@ -109,7 +109,6 @@ Settings → Pages → Source → **Deploy from a branch**, branch `main`, folde
 ## Credits
 
 - [Cambridge Dictionary phonetics key](https://dictionary.cambridge.org/zht/help/phonetics.html) — the symbol set and conventions
-- [British Council · Sounds Right](https://www.britishcouncil.org.tw/teach/courses-resources/sounds-right) — chart layout
 - [Seeing Speech](https://www.seeingspeech.ac.uk/ipa-charts/) — real articulation imaging
 
 ## Licence
